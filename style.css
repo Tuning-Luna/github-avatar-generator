@@ -26,17 +26,21 @@
 }
 
 /* ─── Base ───────────────────────────────────────────────────────── */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   font-family: var(--font-mono);
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
   position: relative;
-  overflow-x: hidden;
 }
 
 /* ─── Background grid ────────────────────────────────────────────── */
@@ -272,13 +276,36 @@ input:focus {
 }
 
 /* ─── Responsive ─────────────────────────────────────────────────── */
-@media (max-width: 380px) {
+@media (max-width: 480px) {
+  body {
+    padding: 1rem;
+  }
+
   .wrap {
     padding: 1.5rem 1.25rem 1.25rem;
+    gap: 1.25rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+
+  canvas {
+    width: 180px;
+    height: 180px;
+  }
+}
+
+@media (max-width: 380px) {
+  .wrap {
+    padding: 1.25rem 1rem 1rem;
+    gap: 1rem;
   }
 
   canvas {
     width: 160px;
     height: 160px;
+  }
+
+  .canvas-wrap {
+    padding: 1rem;
   }
 }
