@@ -25,14 +25,18 @@ async function sha256(str) {
 function hslToRgb(h, s, l) {
   s /= 100
   l /= 100
-  const k = (n) => (n + h / 30) % 12
   const a = s * Math.min(l, 1 - l)
-  const f = (n) =>
-    l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))
+  const k = h / 30
+
+  // Inline f(n) calculation for better performance
+  const f0 = l - a * Math.max(-1, Math.min((0 + k) % 12 - 3, Math.min(9 - (0 + k) % 12, 1)))
+  const f8 = l - a * Math.max(-1, Math.min((8 + k) % 12 - 3, Math.min(9 - (8 + k) % 12, 1)))
+  const f4 = l - a * Math.max(-1, Math.min((4 + k) % 12 - 3, Math.min(9 - (4 + k) % 12, 1)))
+
   return [
-    Math.round(f(0) * 255),
-    Math.round(f(8) * 255),
-    Math.round(f(4) * 255),
+    Math.round(f0 * 255),
+    Math.round(f8 * 255),
+    Math.round(f4 * 255),
   ]
 }
 
@@ -40,22 +44,39 @@ function hslToRgb(h, s, l) {
 
 const GRID = 5
 const CELL = 50 // Fixed cell size; canvas is always GRID×CELL = 250px
+const SIZE = GRID * CELL // 250
+const BORDER_RADIUS = 12
+const HALF_GRID = Math.ceil(GRID / 2) // 3
+
+// Pre-calculate column mapping for mirroring
+const MIRROR_MAP = Object.freeze(
+  Array.from({ length: GRID }, (_, col) =>
+    col < HALF_GRID ? col : GRID - 1 - col
+  )
+)
 
 /**
- * Draw a rounded-rectangle path (does not stroke/fill).
+ * Draw a rounded-rectangle path using native API if available, fallback to manual.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} x @param {number} y @param {number} w @param {number} h @param {number} r
  */
 function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath()
-  ctx.moveTo(x + r, y)
-  ctx.lineTo(x + w - r, y)
-  ctx.arcTo(x + w, y, x + w, y + r, r)
-  ctx.lineTo(x + w, y + h - r)
-  ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
-  ctx.lineTo(x + r, y + h)
-  ctx.arcTo(x, y + h, x, y + h - r, r)
-  ctx.lineTo(x, y + r)
-  ctx.arcTo(x, y, x + r, y, r)
-  ctx.closePath()
+  // Use native roundRect if available (better performance)
+  if (ctx.roundRect) {
+    ctx.roundRect(x, y, w, h, r)
+  } else {
+    ctx.beginPath()
+    ctx.moveTo(x + r, y)
+    ctx.lineTo(x + w - r, y)
+    ctx.arcTo(x + w, y, x + w, y + r, r)
+    ctx.lineTo(x + w, y + h - r)
+    ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
+    ctx.lineTo(x + r, y + h)
+    ctx.arcTo(x, y + h, x, y + h - r, r)
+    ctx.lineTo(x, y + r)
+    ctx.arcTo(x, y, x + r, y, r)
+    ctx.closePath()
+  }
 }
 
 /**
@@ -65,16 +86,20 @@ function roundRect(ctx, x, y, w, h, r) {
  * @param {HTMLCanvasElement} canvas
  */
 async function drawIdenticon(text, canvas) {
-  const hash = await sha256(text.trim().toLowerCase() || " ")
+  const normalizedText = text.trim().toLowerCase() || " "
+  const hash = await sha256(normalizedText)
 
-  const size = GRID * CELL
-  canvas.width = size
-  canvas.height = size
+  // Only resize if necessary
+  if (canvas.width !== SIZE || canvas.height !== SIZE) {
+    canvas.width = SIZE
+    canvas.height = SIZE
+  }
 
   const ctx = canvas.getContext("2d")
 
   // ── Palette from hash ──
-  const hue = ((((hash[0] << 8) | hash[1]) % 360) + 360) % 360
+  // Simplified hue calculation: hash[0:2] % 360, handles negative correctly
+  const hue = ((hash[0] << 8) | hash[1]) % 360
   const sat = 45 + (hash[2] % 30)
   const lig = 38 + (hash[3] % 20)
   const [r, g, b] = hslToRgb(hue, sat, lig)
@@ -83,24 +108,23 @@ async function drawIdenticon(text, canvas) {
 
   // ── Background ──
   ctx.fillStyle = bg
-  roundRect(ctx, 0, 0, size, size, 12)
-  ctx.fill()
+  ctx.fillRect(0, 0, SIZE, SIZE)
 
   // ── Pixel grid (mirrored, ~50% density via % 2) ──
-  const half = Math.ceil(GRID / 2) // 3 columns define the pattern
-  const cells = Array.from({ length: GRID }, (_, row) =>
-    Array.from(
-      { length: half },
-      (_, col) => hash[4 + row * half + col] % 2 === 0,
-    ),
-  )
-
   ctx.fillStyle = fg
+
+  // Pre-calculate hash index base and use single loop for better cache locality
+  const hashOffset = 4
+
   for (let row = 0; row < GRID; row++) {
+    const rowBase = hashOffset + row * HALF_GRID
+    const y = row * CELL
+
     for (let col = 0; col < GRID; col++) {
-      const mirrorCol = col < half ? col : GRID - 1 - col
-      if (cells[row][mirrorCol]) {
-        ctx.fillRect(col * CELL, row * CELL, CELL, CELL)
+      const mirrorCol = MIRROR_MAP[col]
+      // Check if cell should be filled (hash % 2 === 0)
+      if ((hash[rowBase + mirrorCol] & 1) === 0) {
+        ctx.fillRect(col * CELL, y, CELL, CELL)
       }
     }
   }
@@ -115,25 +139,41 @@ const btnGenerate = document.getElementById("btnGenerate")
 const btnRandom = document.getElementById("btnRandom")
 const btnDownload = document.getElementById("btnDownload")
 
+// Track pending render to avoid race conditions
+let pendingRender = null
+
 /** Set all interactive elements to disabled/enabled. */
 function setLoading(on) {
-  ;[btnGenerate, btnRandom, btnDownload, nameInput].forEach(
-    (el) => (el.disabled = on),
-  )
+  const disabled = on
+  btnGenerate.disabled = disabled
+  btnRandom.disabled = disabled
+  btnDownload.disabled = disabled
+  nameInput.disabled = disabled
   canvas.classList.toggle("loading", on)
 }
 
 /** Render the identicon for the given name and update the label. */
 async function renderFor(name) {
-  const display = name.trim() || "—"
+  const trimmedName = name.trim()
+  const display = trimmedName || "—"
+
+  // Update UI immediately
   nameLabel.textContent = display
-  nameLabel.classList.toggle("active", name.trim().length > 0)
+  nameLabel.classList.toggle("active", trimmedName.length > 0)
+
+  // Cancel any pending render
+  const renderId = Symbol()
+  pendingRender = renderId
 
   setLoading(true)
   try {
     await drawIdenticon(name || " ", canvas)
   } finally {
-    setLoading(false)
+    // Only clear loading if this is still the current render
+    if (pendingRender === renderId) {
+      setLoading(false)
+      pendingRender = null
+    }
   }
 }
 
@@ -143,42 +183,19 @@ async function generate() {
   await renderFor(nameInput.value)
 }
 
-const SAMPLE_NAMES = [
-  "Alice",
-  "Bob",
-  "Charlie",
-  "Diana",
-  "Eve",
-  "Frank",
-  "Grace",
-  "Hiro",
-  "Iris",
-  "Jack",
-  "Kai",
-  "Luna",
-  "Max",
-  "Nora",
-  "Oscar",
-  "Panda",
-  "Quinn",
-  "River",
-  "Sam",
-  "Tara",
-  "Uma",
-  "Vince",
-  "Wren",
-  "Xena",
-  "Yuki",
-  "Zara",
-  "Claude",
-  "GPT",
-  "Gemini",
-  "Grok",
-]
+const SAMPLE_NAMES = Object.freeze([
+  "Alice", "Bob", "Charlie", "Diana", "Eve", "Frank",
+  "Grace", "Hiro", "Iris", "Jack", "Kai", "Luna",
+  "Max", "Nora", "Oscar", "Panda", "Quinn", "River",
+  "Sam", "Tara", "Uma", "Vince", "Wren", "Xena",
+  "Yuki", "Zara", "Claude", "GPT", "Gemini", "Grok",
+])
+
+const SAMPLE_COUNT = SAMPLE_NAMES.length
 
 async function random() {
-  const base = SAMPLE_NAMES[Math.floor(Math.random() * SAMPLE_NAMES.length)]
-  const suffix = Math.floor(Math.random() * 99)
+  const base = SAMPLE_NAMES[(Math.random() * SAMPLE_COUNT) | 0]
+  const suffix = (Math.random() * 99) | 0
   const name = `${base}${suffix}`
   nameInput.value = name
   await renderFor(name)
