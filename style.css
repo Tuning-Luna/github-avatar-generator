@@ -275,6 +275,34 @@ input:focus {
   border-color: rgba(232, 255, 71, 0.5);
 }
 
+/* ─── Checkbox ──────────────────────────────────────────────────── */
+.checkbox-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-muted);
+  transition: color var(--transition);
+}
+
+.checkbox-label:hover {
+  color: var(--text);
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
 /* ─── Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 480px) {
   body {

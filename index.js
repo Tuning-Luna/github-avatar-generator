@@ -106,6 +106,9 @@ async function drawIdenticon(text, canvas) {
   const fg = `rgb(${r},${g},${b})`
   const bg = `hsl(${hue},${Math.max(sat - 30, 5)}%,${Math.min(lig + 42, 96)}%)`
 
+  // Store bg color for download border
+  currentBgColor = bg
+
   // ── Background ──
   ctx.fillStyle = bg
   ctx.fillRect(0, 0, SIZE, SIZE)
@@ -138,6 +141,10 @@ const nameLabel = document.getElementById("nameLabel")
 const btnGenerate = document.getElementById("btnGenerate")
 const btnRandom = document.getElementById("btnRandom")
 const btnDownload = document.getElementById("btnDownload")
+const whiteBorderCheckbox = document.getElementById("whiteBorder")
+
+// Store the current background color for download border
+let currentBgColor = null
 
 // Track pending render to avoid race conditions
 let pendingRender = null
@@ -207,7 +214,29 @@ function download() {
   const safeName = name === "—" || name === "" ? "identicon" : name
   const link = document.createElement("a")
   link.download = `identicon-${safeName}.png`
-  link.href = canvas.toDataURL("image/png")
+
+  // Check if border is enabled
+  const addBorder = whiteBorderCheckbox && whiteBorderCheckbox.checked
+
+  if (addBorder && currentBgColor) {
+    // Create a new canvas with border using the generated bg color
+    const borderSize = 20 // 20px border on each side
+    const borderedCanvas = document.createElement("canvas")
+    borderedCanvas.width = canvas.width + borderSize * 2
+    borderedCanvas.height = canvas.height + borderSize * 2
+
+    const ctx = borderedCanvas.getContext("2d")
+    // Fill with the generated background color
+    ctx.fillStyle = currentBgColor
+    ctx.fillRect(0, 0, borderedCanvas.width, borderedCanvas.height)
+    // Draw the original canvas in the center
+    ctx.drawImage(canvas, borderSize, borderSize)
+
+    link.href = borderedCanvas.toDataURL("image/png")
+  } else {
+    link.href = canvas.toDataURL("image/png")
+  }
+
   link.click()
 }
 
