@@ -1,0 +1,15 @@
+:root {
+  --bg: #0d0d0f;
+  --surface: #16161a;
+  --surface-2: #1e1e24;
+  --border: rgba(255, 255, 255, 0.08);
+  --accent: #e8ff47;
+  --accent-dim: rgba(232, 255, 71, 0.12);
+  --text: #f0eff5;
+  --text-muted: #7c7a8a;
+  --radius-card: 20px;
+  --radius-btn: 10px;
+  --font-display: "Syne", sans-serif;
+  --font-mono: "DM Mono", monospace;
+  --transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}

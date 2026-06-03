@@ -1,0 +1,33 @@
+@media (max-width: 480px) {
+  body {
+    padding: 1rem;
+  }
+
+  .wrap {
+    padding: 1.5rem 1.25rem 1.25rem;
+    gap: 1.25rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+
+  canvas {
+    width: 180px;
+    height: 180px;
+  }
+}
+
+@media (max-width: 380px) {
+  .wrap {
+    padding: 1.25rem 1rem 1rem;
+    gap: 1rem;
+  }
+
+  canvas {
+    width: 160px;
+    height: 160px;
+  }
+
+  .canvas-wrap {
+    padding: 1rem;
+  }
+}

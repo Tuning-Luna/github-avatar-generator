@@ -1,0 +1,127 @@
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+
+input {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 0 14px;
+  height: 44px;
+  outline: none;
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
+}
+
+input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+input:focus {
+  border-color: rgba(232, 255, 71, 0.4);
+  box-shadow: 0 0 0 3px rgba(232, 255, 71, 0.08);
+}
+
+.btn {
+  height: 44px;
+  border: none;
+  border-radius: var(--radius-btn);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-generate {
+  background: var(--accent);
+  color: #0d0d0f;
+  padding: 0 18px;
+}
+
+.btn-generate:hover:not(:disabled) {
+  background: #f2ff6e;
+  box-shadow: 0 0 16px rgba(232, 255, 71, 0.3);
+}
+
+.btn-row {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-random {
+  flex: 1;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.btn-random:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.16);
+  color: var(--text);
+}
+
+.btn-dl {
+  flex: 1;
+  background: transparent;
+  border: 1px solid rgba(232, 255, 71, 0.3);
+  color: var(--accent);
+}
+
+.btn-dl:hover:not(:disabled) {
+  background: var(--accent-dim);
+  border-color: rgba(232, 255, 71, 0.5);
+}
+
+.checkbox-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-muted);
+  transition: color var(--transition);
+}
+
+.checkbox-label:hover {
+  color: var(--text);
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
