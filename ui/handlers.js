@@ -16,6 +16,9 @@ import { BORDER_SIZE } from "../core/config.js"
 // Track pending render to avoid race conditions
 let pendingRender = null
 
+// Store current background color for border generation
+let currentBgColor = null
+
 /** Set all interactive elements to disabled/enabled. */
 function setLoading(on) {
   const disabled = on
@@ -41,7 +44,7 @@ async function renderFor(name) {
 
   setLoading(true)
   try {
-    await drawIdenticon(name || " ", canvas)
+    currentBgColor = await drawIdenticon(name || " ", canvas)
   } finally {
     // Only clear loading if this is still the current render
     if (pendingRender === renderId) {
@@ -90,13 +93,9 @@ function download() {
     borderedCanvas.height = canvas.height + BORDER_SIZE * 2
 
     const ctx = borderedCanvas.getContext("2d")
-    // Extract background color from canvas pixel (top-left corner)
-    const imageData = ctx.getImageData(0, 0, 1, 1)
-    const pixel = canvas.getContext("2d").getImageData(0, 0, 1, 1).data
-    const bgColor = `rgb(${pixel[0]},${pixel[1]},${pixel[2]})`
 
-    // Fill with the extracted background color
-    ctx.fillStyle = bgColor
+    // Use the stored background color for the border
+    ctx.fillStyle = currentBgColor || "#ffffff"
     ctx.fillRect(0, 0, borderedCanvas.width, borderedCanvas.height)
     // Draw the original canvas in the center
     ctx.drawImage(canvas, BORDER_SIZE, BORDER_SIZE)
