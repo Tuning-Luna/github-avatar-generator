@@ -43,9 +43,9 @@ function hslToRgb(h, s, l) {
 // ─── Drawing ─────────────────────────────────────────────────────────────────
 
 const GRID = 5
-const CELL = 50 // Fixed cell size; canvas is always GRID×CELL = 250px
-const SIZE = GRID * CELL // 250
-const BORDER_RADIUS = 12
+const CELL = 200 // Fixed cell size; canvas is always GRID×CELL = 1000px
+const SIZE = GRID * CELL // 1000
+const BORDER_RADIUS = 48
 const HALF_GRID = Math.ceil(GRID / 2) // 3
 
 // Pre-calculate column mapping for mirroring
