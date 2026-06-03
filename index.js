@@ -220,7 +220,7 @@ function download() {
 
   if (addBorder && currentBgColor) {
     // Create a new canvas with border using the generated bg color
-    const borderSize = 20 // 20px border on each side
+    const borderSize = 80 // 80px border on each side
     const borderedCanvas = document.createElement("canvas")
     borderedCanvas.width = canvas.width + borderSize * 2
     borderedCanvas.height = canvas.height + borderSize * 2
