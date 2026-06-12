@@ -50,8 +50,8 @@ async function drawIdenticon(text, canvas) {
   // ── Palette from hash ──
   // Simplified hue calculation: hash[0:2] % 360, handles negative correctly
   const hue = ((hash[0] << 8) | hash[1]) % 360
-  const sat = 45 + (hash[2] % 30)
-  const lig = 38 + (hash[3] % 20)
+  const sat = 70 + (hash[2] % 25)
+  const lig = 50 + (hash[3] % 15)
   const [r, g, b] = hslToRgb(hue, sat, lig)
   const fg = `rgb(${r},${g},${b})`
   const bg = `hsl(${hue},${Math.max(sat - 30, 5)}%,${Math.min(lig + 42, 96)}%)`
