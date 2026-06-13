@@ -12,6 +12,12 @@ _Generate GitHub-style identicons from any string_
 
 ---
 
+## 🚀 Live Demo | 在线体验
+
+🔗 **[https://tuning-luna.github.io/github-avatar-generator/](https://tuning-luna.github.io/github-avatar-generator/)**
+
+---
+
 ## ✨ Features | 特性
 
 - 🎨 **SHA-256 Based** - Deterministic, unique avatar for any input
@@ -30,12 +36,6 @@ _Generate GitHub-style identicons from any string_
   <img src="./assets/2.png" width="30%" />
   <img src="./assets/3.png" width="30%" />
 </div>
-
----
-
-## 🚀 Live Demo | 在线体验
-
-🔗 **[https://tuning-luna.github.io/github-avatar-generator/](https://tuning-luna.github.io/github-avatar-generator/)**
 
 ---
 
