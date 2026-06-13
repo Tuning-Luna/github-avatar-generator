@@ -64,13 +64,17 @@ const SAMPLE_NAMES = Object.freeze([
   "Max", "Nora", "Oscar", "Panda", "Quinn", "River",
   "Sam", "Tara", "Uma", "Vince", "Wren", "Xena",
   "Yuki", "Zara", "Claude", "GPT", "Gemini", "Grok",
+  "Nova", "Orion", "Atlas", "Echo", "Pixel", "Neon",
+  "Blaze", "Frost", "Coral", "Azure", "Storm", "Ash",
+  "Ember", "Fable", "Jade", "Raven", "Sage", "Vega",
+  "Aero", "Bolt", "Cove", "Dusk", "Flux", "Glimmer",
 ])
 
 const SAMPLE_COUNT = SAMPLE_NAMES.length
 
 async function random() {
   const base = SAMPLE_NAMES[(Math.random() * SAMPLE_COUNT) | 0]
-  const suffix = (Math.random() * 99) | 0
+  const suffix = 1000 + ((Math.random() * 8999) | 0)
   const name = `${base}${suffix}`
   nameInput.value = name
   await renderFor(name)
