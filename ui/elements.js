@@ -7,6 +7,8 @@ const btnGenerate = document.getElementById("btnGenerate")
 const btnRandom = document.getElementById("btnRandom")
 const btnDownload = document.getElementById("btnDownload")
 const whiteBorderCheckbox = document.getElementById("whiteBorder")
+const btnCopyName = document.getElementById("btnCopyName")
+const btnCopyImage = document.getElementById("btnCopyImage")
 
 export {
   canvas,
@@ -16,4 +18,6 @@ export {
   btnRandom,
   btnDownload,
   whiteBorderCheckbox,
+  btnCopyName,
+  btnCopyImage,
 }

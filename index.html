@@ -47,7 +47,7 @@
         <span class="badge">SHA-256</span>
         <h1 class="title">GitHub Avatar<br /><em>Generator</em></h1>
         <p class="sub">Input any string to generate a unique GitHub avatar</p>
-        <p class="sub">输入任意字符串，生成唯一GitHub头像</p>
+        <p class="sub">输入任意字符串，生成唯一 GitHub 头像</p>
       </header>
 
       <section class="canvas-section">
@@ -75,20 +75,32 @@
           <button
             class="btn btn-generate"
             id="btnGenerate">
-            Generate
+            Generate 生成
           </button>
         </div>
 
-        <div class="btn-row">
+        <button
+          class="btn btn-random"
+          id="btnRandom">
+          ⚄ Random Generate 随机生成
+        </button>
+
+        <div class="group-label">Copy & Export / 复制与导出</div>
+        <div class="action-row">
           <button
-            class="btn btn-random"
-            id="btnRandom">
-            ⚄ Random
+            class="btn btn-action btn-dl"
+            id="btnCopyName">
+            Copy String 复制字符串
           </button>
           <button
-            class="btn btn-dl"
+            class="btn btn-action btn-dl"
+            id="btnCopyImage">
+            Copy Image 复制图片
+          </button>
+          <button
+            class="btn btn-action btn-dl"
             id="btnDownload">
-            ↓ Download
+            Download Image 下载图片
           </button>
         </div>
 
@@ -98,12 +110,14 @@
               type="checkbox"
               id="whiteBorder"
               checked />
-            <span>添加边框 / Add Border</span>
+            <span>Add Border 添加边框</span>
           </label>
         </div>
       </section>
     </main>
 
-    <script type="module" src="main.js"></script>
+    <script
+      type="module"
+      src="main.js"></script>
   </body>
 </html>

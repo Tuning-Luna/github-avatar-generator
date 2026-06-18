@@ -7,6 +7,8 @@ import {
   btnGenerate,
   btnRandom,
   btnDownload,
+  btnCopyName,
+  btnCopyImage,
   whiteBorderCheckbox,
 } from "./elements.js"
 
@@ -26,6 +28,8 @@ function setLoading(on) {
   btnGenerate.disabled = disabled
   btnRandom.disabled = disabled
   btnDownload.disabled = disabled
+  btnCopyName.disabled = disabled
+  btnCopyImage.disabled = disabled
   nameInput.disabled = disabled
   canvas.classList.toggle("loading", on)
 }
@@ -103,4 +107,18 @@ function download() {
   link.click()
 }
 
-export { renderFor, generate, random, download, randomName }
+async function copyName() {
+  const text = nameLabel.textContent.trim()
+  if (text && text !== "—") {
+    await navigator.clipboard.writeText(text)
+  }
+}
+
+async function copyImage() {
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"))
+  if (blob) {
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })])
+  }
+}
+
+export { renderFor, generate, random, download, randomName, copyName, copyImage }

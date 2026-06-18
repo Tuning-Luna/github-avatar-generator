@@ -1,13 +1,15 @@
 // @ts-nocheck
 
-import { canvas, nameInput, btnGenerate, btnRandom, btnDownload } from "./ui/elements.js"
-import { generate, random, download, renderFor, randomName } from "./ui/handlers.js"
+import { canvas, nameInput, btnGenerate, btnRandom, btnDownload, btnCopyName, btnCopyImage } from "./ui/elements.js"
+import { generate, random, download, renderFor, randomName, copyName, copyImage } from "./ui/handlers.js"
 
 // ─── Bindings ─────────────────────────────────────────────────────────────────
 
 btnGenerate.addEventListener("click", generate)
 btnRandom.addEventListener("click", random)
 btnDownload.addEventListener("click", download)
+btnCopyName.addEventListener("click", copyName)
+btnCopyImage.addEventListener("click", copyImage)
 nameInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") generate()
 })
