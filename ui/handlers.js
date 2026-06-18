@@ -12,6 +12,7 @@ import {
 
 import { drawIdenticon } from "../core/drawer.js"
 import { BORDER_SIZE } from "../core/config.js"
+import { SAMPLE_NAMES } from "./sample-names.js"
 
 // Track pending render to avoid race conditions
 let pendingRender = null
@@ -57,18 +58,6 @@ async function renderFor(name) {
 async function generate() {
   await renderFor(nameInput.value)
 }
-
-const SAMPLE_NAMES = Object.freeze([
-  "Alice", "Bob", "Charlie", "Diana", "Eve", "Frank",
-  "Grace", "Hiro", "Iris", "Jack", "Kai", "Luna",
-  "Max", "Nora", "Oscar", "Panda", "Quinn", "River",
-  "Sam", "Tara", "Uma", "Vince", "Wren", "Xena",
-  "Yuki", "Zara", "Claude", "GPT", "Gemini", "Grok",
-  "Nova", "Orion", "Atlas", "Echo", "Pixel", "Neon",
-  "Blaze", "Frost", "Coral", "Azure", "Storm", "Ash",
-  "Ember", "Fable", "Jade", "Raven", "Sage", "Vega",
-  "Aero", "Bolt", "Cove", "Dusk", "Flux", "Glimmer",
-])
 
 const SAMPLE_COUNT = SAMPLE_NAMES.length
 
