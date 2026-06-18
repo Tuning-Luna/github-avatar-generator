@@ -59,12 +59,14 @@ async function generate() {
   await renderFor(nameInput.value)
 }
 
-const SAMPLE_COUNT = SAMPLE_NAMES.length
+function randomName() {
+  const base = SAMPLE_NAMES[(Math.random() * SAMPLE_NAMES.length) | 0]
+  const suffix = 1000 + ((Math.random() * 8999) | 0)
+  return `${base}${suffix}`
+}
 
 async function random() {
-  const base = SAMPLE_NAMES[(Math.random() * SAMPLE_COUNT) | 0]
-  const suffix = 1000 + ((Math.random() * 8999) | 0)
-  const name = `${base}${suffix}`
+  const name = randomName()
   nameInput.value = name
   await renderFor(name)
 }
@@ -101,4 +103,4 @@ function download() {
   link.click()
 }
 
-export { renderFor, generate, random, download }
+export { renderFor, generate, random, download, randomName }
