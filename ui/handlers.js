@@ -75,6 +75,32 @@ async function random() {
   await renderFor(name)
 }
 
+/**
+ * Return the canvas to export (with a white border if enabled), or the
+ * original canvas when the checkbox is off. Both download and clipboard
+ * copy use this so an enabled border is applied consistently.
+ */
+function getExportCanvas() {
+  const addBorder = whiteBorderCheckbox && whiteBorderCheckbox.checked
+
+  if (!addBorder) {
+    return canvas
+  }
+
+  // Create a new canvas with the border filled in from the stored background color
+  const borderedCanvas = document.createElement("canvas")
+  borderedCanvas.width = canvas.width + BORDER_SIZE * 2
+  borderedCanvas.height = canvas.height + BORDER_SIZE * 2
+
+  const ctx = borderedCanvas.getContext("2d")
+  ctx.fillStyle = currentBgColor || "#ffffff"
+  ctx.fillRect(0, 0, borderedCanvas.width, borderedCanvas.height)
+  // Draw the original canvas in the center
+  ctx.drawImage(canvas, BORDER_SIZE, BORDER_SIZE)
+
+  return borderedCanvas
+}
+
 function download() {
   const name = nameLabel.textContent.trim()
   // Use a safe fallback filename if label is still the placeholder dash
@@ -82,27 +108,7 @@ function download() {
   const link = document.createElement("a")
   link.download = `identicon-${safeName}.png`
 
-  // Check if border is enabled
-  const addBorder = whiteBorderCheckbox && whiteBorderCheckbox.checked
-
-  if (addBorder) {
-    // Create a new canvas with border
-    const borderedCanvas = document.createElement("canvas")
-    borderedCanvas.width = canvas.width + BORDER_SIZE * 2
-    borderedCanvas.height = canvas.height + BORDER_SIZE * 2
-
-    const ctx = borderedCanvas.getContext("2d")
-
-    // Use the stored background color for the border
-    ctx.fillStyle = currentBgColor || "#ffffff"
-    ctx.fillRect(0, 0, borderedCanvas.width, borderedCanvas.height)
-    // Draw the original canvas in the center
-    ctx.drawImage(canvas, BORDER_SIZE, BORDER_SIZE)
-
-    link.href = borderedCanvas.toDataURL("image/png")
-  } else {
-    link.href = canvas.toDataURL("image/png")
-  }
+  link.href = getExportCanvas().toDataURL("image/png")
 
   link.click()
 }
@@ -115,7 +121,9 @@ async function copyName() {
 }
 
 async function copyImage() {
-  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"))
+  const blob = await new Promise((resolve) =>
+    getExportCanvas().toBlob(resolve, "image/png")
+  )
   if (blob) {
     await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })])
   }
