@@ -1,3 +1,5 @@
+![](./assets/background.png)
+
 # GitHub Avatar Generator
 
 <div align="center">
