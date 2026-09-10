@@ -1,57 +1,45 @@
-.canvas-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
+/* Square and unrounded on purpose: the preview must match the exported PNG,
+   which has hard corners and no outline. */
+.preview-frame {
+  --avatar-bg: var(--surface-variant);
+  display: grid;
+  width: min(100%, 320px);
+  aspect-ratio: 1;
+  place-items: center;
+  padding: 0;
+  background: var(--avatar-bg);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 30%);
+  transition: background-color var(--transition), padding var(--transition), opacity var(--transition);
 }
 
-.canvas-wrap {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: border-color var(--transition);
-}
-
-.canvas-wrap:has(canvas) {
-  position: relative;
-}
-
-.canvas-wrap::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 16px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  pointer-events: none;
+.preview-frame.has-border {
+  /* 80px border / 1160px export edge, matching the PNG composition. */
+  padding: 6.89655%;
 }
 
 canvas {
   display: block;
-  border-radius: 10px;
-  width: 200px;
-  height: 200px;
+  width: 100%;
+  height: 100%;
   image-rendering: pixelated;
   transition: opacity var(--transition);
 }
 
 canvas.loading {
-  opacity: 0.4;
+  opacity: 0.45;
 }
 
 .name-label {
+  width: 100%;
+  min-height: 24px;
+  overflow-wrap: anywhere;
+  color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-muted);
-  letter-spacing: 0.04em;
-  min-height: 20px;
-  transition: color var(--transition);
+  letter-spacing: 0.02em;
 }
 
 .name-label.active {
-  color: var(--accent);
+  color: var(--primary);
 }

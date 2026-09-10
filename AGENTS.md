@@ -1,43 +1,51 @@
 # GitHub Avatar Generator — Agent Guide
 
 ## No build system
-- Pure vanilla JS with ES modules (`type="module"` in `index.html` line 92)
-- No `package.json`, npm, bundler, test framework, or linter config
+- Pure vanilla JS with ES modules (`type="module"` in `index.html`)
+- No runtime dependencies, bundler, or framework
 - Serve locally with any static file server (e.g. `npx serve .` or VS Code Live Server)
-- No dev/test/lint commands exist
+- Run regression checks with Node's built-in test runner: `node --test tests/*.test.mjs`
 
 ## Architecture
 ```
-main.js (entry — button bindings + init render)
+main.js (entry — semantic form and button bindings + init render)
   → ui/elements.js   (DOM refs)
-  → ui/handlers.js   (generate, random, download)
+  → ui/handlers.js   (generation state, feedback, actions)
+    → ui/export.js     (shared border composition and PNG blobs)
     → core/drawer.js  (drawIdenticon, roundRect)
       → core/config.js  (GRID=5, CELL=200, SIZE=1000, BORDER_SIZE=80)
       → utils/color.js  (hslToRgb)
       → utils/hash.js   (sha256 via crypto.subtle)
 
 CSS modules (linked in index.html)
-  core/tokens.css    — design tokens (CSS custom properties)
-  core/reset.css     — reset + base styles
-  ui/layout.css      — grid background, card, header
-  ui/canvas.css      — canvas section, canvas, name label
-  ui/controls.css    — inputs, buttons, checkboxes
-  ui/responsive.css  — media queries
+  core/tokens.css    — app-owned reference-derived color/type/spacing tokens
+  core/reset.css     — reset, accessible focus, reduced-motion base
+  ui/layout.css      — workspace panels, header and glass surface
+  ui/canvas.css      — preview frame, canvas and generated seed label
+  ui/controls.css    — form fields, buttons, checkbox and status
+  ui/responsive.css  — desktop sticky preview and mobile layout
 ```
 
 ## Key conventions
-- **Canvas is always 1000×1000px** (5×5 grid × 200px cells). CSS scales it to 200×200px for display; downloads are full 1000×1000px.
-- **Grid uses horizontal mirroring**: right half mirrors left half. `MIRROR_MAP` in `config.js` handles the column mapping.
-- **Deterministic seed**: input is trimmed, lowercased, then SHA-256 hashed. Hash bytes drive hue/sat/lig and grid cell fill (even = filled).
-- **Background color is an HSL string** (not RGB). `drawIdenticon()` returns it — **use this return value** for border color. Do NOT re-read from canvas pixels (prone to inconsistency).
+- The source canvas is always 1000 x 1000px (5 x 5 grid x 200px cells); CSS scales it for display.
+- Grid uses horizontal mirroring: right half mirrors left half. `MIRROR_MAP` in `core/config.js` handles the column mapping.
+- Deterministic seed: renderer trims, lowercases, then SHA-256 hashes input. Hash bytes drive hue/sat/lig and grid cell fill (even = filled).
+- Background color is an HSL string returned by `drawIdenticon()`; use this return value for export borders. Do not re-read canvas pixels.
+- `ui/handlers.js` distinguishes the editable draft from the last successfully rendered seed. Copy and download use the committed result.
+- Export without a border is 1000 x 1000px; the default 80px-per-side border produces 1160 x 1160px.
 
-## Border gotcha
-When downloading with border enabled, use the `currentBgColor` from `handlers.js` (stored from `drawIdenticon`'s return value). Re-extracting from `getImageData()` can yield wrong colors due to browser color space handling.
+## Verification
+- Node tests are dependency-free and cover hash/color/rendering/export invariants.
+- Browser-only checks require a localhost server: clipboard permissions, downloads, keyboard submission, and responsive layout at 320px through desktop widths.
+- Do not import, install, or modify the supplied `design-system/` directory; only selected reference styles are adapted into app-owned CSS.
+
+## Deployment
+- Deployed via GitHub Pages at `tuning-luna.github.io/github-avatar-generator`.
+- Keep asset, stylesheet, and module URLs relative so the app works below the GitHub Pages subpath.
+- External Inter and Manrope stylesheets are optional visual enhancements; system/CJK fallbacks must remain usable when the network is unavailable.
 
 ## Codebase quirks
-- `roundRect` is defined in `drawer.js` but **not currently used** anywhere
-- All files have `// @ts-nocheck`; TypeScript is not actually configured
-- No dependencies (zero npm packages)
-- No tests; verification is manual (serve + visual check)
-- Deployed via GitHub Pages at `tuning-luna.github.io/github-avatar-generator`
-- Host font preconnect links in `index.html` (`DM Mono`, `Syne`)
+- All app files use `// @ts-nocheck`; TypeScript is not configured.
+- `roundRect` is defined in `core/drawer.js` but is not currently used by the renderer.
+- PNG is the only export format; there are no history, persistence, theme, resolution, or live-generation controls.
+- The reference design system has no runtime role in this app and must not become an application dependency.

@@ -2,8 +2,11 @@
 
 import {
   canvas,
+  canvasFrame,
+  generationForm,
   nameInput,
   nameLabel,
+  status,
   btnGenerate,
   btnRandom,
   btnDownload,
@@ -11,56 +14,98 @@ import {
   btnCopyImage,
   whiteBorderCheckbox,
 } from "./elements.js"
-
 import { drawIdenticon } from "../core/drawer.js"
-import { BORDER_SIZE } from "../core/config.js"
+import { canvasToBlob, getExportCanvas } from "./export.js"
 import { SAMPLE_NAMES } from "./sample-names.js"
 
-// Track pending render to avoid race conditions
+const state = {
+  renderedName: null,
+  backgroundColor: null,
+  busy: false,
+}
 let pendingRender = null
+let focusRestore = null
 
-// Store current background color for border generation
-let currentBgColor = null
-
-/** Set all interactive elements to disabled/enabled. */
-function setLoading(on) {
-  const disabled = on
-  btnGenerate.disabled = disabled
-  btnRandom.disabled = disabled
-  btnDownload.disabled = disabled
-  btnCopyName.disabled = disabled
-  btnCopyImage.disabled = disabled
-  nameInput.disabled = disabled
-  canvas.classList.toggle("loading", on)
+function setStatus(message, type = "") {
+  status.textContent = message
+  status.dataset.state = type
 }
 
-/** Render the identicon for the given name and update the label. */
+function updateExportMeta() {
+  canvasFrame.classList.toggle("has-border", whiteBorderCheckbox.checked)
+}
+
+function setLoading(on) {
+  state.busy = on
+  if (on && document.activeElement?.tagName === "BUTTON") {
+    focusRestore = document.activeElement
+  }
+
+  btnGenerate.disabled = on
+  btnRandom.disabled = on
+  const canExport = state.renderedName !== null && !on
+  btnDownload.disabled = !canExport
+  btnCopyImage.disabled = !canExport
+  btnCopyName.disabled = !canExport || state.renderedName === ""
+  nameInput.readOnly = on
+  generationForm.setAttribute("aria-busy", String(on))
+  canvas.classList.toggle("loading", on)
+
+  if (!on && focusRestore && document.activeElement?.tagName !== "INPUT") {
+    focusRestore.focus()
+    focusRestore = null
+  }
+}
+
+function commitRender(stagingCanvas, name, backgroundColor) {
+  canvas.width = stagingCanvas.width
+  canvas.height = stagingCanvas.height
+  const context = canvas.getContext("2d")
+  if (!context) throw new Error("Unable to display the generated avatar.")
+  context.drawImage(stagingCanvas, 0, 0)
+
+  state.renderedName = name
+  state.backgroundColor = backgroundColor
+  nameLabel.textContent = name || "空白种子"
+  nameLabel.classList.toggle("active", true)
+  canvasFrame.style.setProperty("--avatar-bg", backgroundColor)
+  canvas.setAttribute("aria-label", `生成的头像：${name || "空白种子"}`)
+  setStatus("头像已生成", "success")
+}
+
+/** Render into a detached canvas, then publish all related state together. */
 async function renderFor(name) {
-  const trimmedName = name.trim()
-  const display = trimmedName || "—"
+  if (state.busy) return false
 
-  // Update UI immediately
-  nameLabel.textContent = display
-  nameLabel.classList.toggle("active", trimmedName.length > 0)
-
-  // Cancel any pending render
-  const renderId = Symbol()
+  const renderId = Symbol("render")
   pendingRender = renderId
-
+  const displayName = name.trim()
+  const stagingCanvas = document.createElement("canvas")
   setLoading(true)
+  setStatus("正在生成…")
+
   try {
-    currentBgColor = await drawIdenticon(name || " ", canvas)
-  } finally {
-    // Only clear loading if this is still the current render
+    const backgroundColor = await drawIdenticon(name || " ", stagingCanvas)
+    if (pendingRender !== renderId) return false
+    commitRender(stagingCanvas, displayName, backgroundColor)
+    return true
+  } catch (error) {
+    console.error("Avatar generation failed:", error)
     if (pendingRender === renderId) {
-      setLoading(false)
+      setStatus("生成失败，请重试", "error")
+    }
+    return false
+  } finally {
+    if (pendingRender === renderId) {
       pendingRender = null
+      setLoading(false)
     }
   }
 }
 
-async function generate() {
-  await renderFor(nameInput.value)
+function generate(event) {
+  event?.preventDefault()
+  return renderFor(nameInput.value)
 }
 
 function randomName() {
@@ -69,64 +114,106 @@ function randomName() {
   return `${base}${suffix}`
 }
 
-async function random() {
+function random() {
   const name = randomName()
   nameInput.value = name
-  await renderFor(name)
+  return renderFor(name)
 }
 
-/**
- * Return the canvas to export (with a white border if enabled), or the
- * original canvas when the checkbox is off. Both download and clipboard
- * copy use this so an enabled border is applied consistently.
- */
-function getExportCanvas() {
-  const addBorder = whiteBorderCheckbox && whiteBorderCheckbox.checked
+function currentExportCanvas() {
+  if (state.renderedName === null || !state.backgroundColor) return null
+  return getExportCanvas(canvas, state.backgroundColor, whiteBorderCheckbox.checked)
+}
 
-  if (!addBorder) {
-    return canvas
+async function download() {
+  const exportCanvas = currentExportCanvas()
+  if (!exportCanvas) {
+    setStatus("请先生成头像", "error")
+    return false
   }
 
-  // Create a new canvas with the border filled in from the stored background color
-  const borderedCanvas = document.createElement("canvas")
-  borderedCanvas.width = canvas.width + BORDER_SIZE * 2
-  borderedCanvas.height = canvas.height + BORDER_SIZE * 2
-
-  const ctx = borderedCanvas.getContext("2d")
-  ctx.fillStyle = currentBgColor || "#ffffff"
-  ctx.fillRect(0, 0, borderedCanvas.width, borderedCanvas.height)
-  // Draw the original canvas in the center
-  ctx.drawImage(canvas, BORDER_SIZE, BORDER_SIZE)
-
-  return borderedCanvas
-}
-
-function download() {
-  const name = nameLabel.textContent.trim()
-  // Use a safe fallback filename if label is still the placeholder dash
-  const safeName = name === "—" || name === "" ? "identicon" : name
-  const link = document.createElement("a")
-  link.download = `identicon-${safeName}.png`
-
-  link.href = getExportCanvas().toDataURL("image/png")
-
-  link.click()
+  try {
+    const blob = await canvasToBlob(exportCanvas)
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.download = `identicon-${state.renderedName || "blank"}.png`
+    link.href = url
+    link.click()
+    URL.revokeObjectURL(url)
+    setStatus("图片已下载", "success")
+    return true
+  } catch (error) {
+    console.error("PNG download failed:", error)
+    setStatus("下载失败，请重试", "error")
+    return false
+  }
 }
 
 async function copyName() {
-  const text = nameLabel.textContent.trim()
-  if (text && text !== "—") {
-    await navigator.clipboard.writeText(text)
+  if (!state.renderedName) {
+    setStatus("暂无可复制的字符串", "error")
+    return false
+  }
+
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error("Text clipboard is unavailable.")
+    await navigator.clipboard.writeText(state.renderedName)
+    setStatus("字符串已复制", "success")
+    return true
+  } catch (error) {
+    console.error("String copy failed:", error)
+    setStatus("复制失败，请检查剪贴板权限", "error")
+    return false
   }
 }
 
 async function copyImage() {
-  const blob = await new Promise((resolve) =>
-    getExportCanvas().toBlob(resolve, "image/png")
-  )
-  if (blob) {
-    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })])
+  const exportCanvas = currentExportCanvas()
+  if (!exportCanvas) {
+    setStatus("请先生成头像", "error")
+    return false
+  }
+
+  if (!window.isSecureContext || !navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+    setStatus("当前浏览器不支持复制图片，请改用下载", "error")
+    return false
+  }
+
+  let pngSupported = true
+  try {
+    if (typeof ClipboardItem.supports === "function") {
+      pngSupported = ClipboardItem.supports("image/png")
+    }
+  } catch (error) {
+    console.error("PNG clipboard capability check failed:", error)
+    pngSupported = false
+  }
+
+  if (!pngSupported) {
+    setStatus("当前浏览器不支持复制 PNG，请改用下载", "error")
+    return false
+  }
+
+  try {
+    const blobPromise = canvasToBlob(exportCanvas)
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": blobPromise })])
+    setStatus("图片已复制", "success")
+    return true
+  } catch (error) {
+    console.error("Image copy failed:", error)
+    setStatus("复制失败，请改用下载", "error")
+    return false
   }
 }
 
-export { renderFor, generate, random, download, randomName, copyName, copyImage }
+export {
+  renderFor,
+  generate,
+  random,
+  randomName,
+  download,
+  copyName,
+  copyImage,
+  updateExportMeta,
+  state,
+}

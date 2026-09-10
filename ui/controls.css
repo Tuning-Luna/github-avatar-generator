@@ -1,170 +1,194 @@
-.controls {
+form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-3);
 }
-
-/* ── Input row ── */
 
 .input-row {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
+  align-items: stretch;
 }
 
-input {
-  flex: 1;
+input[type="text"] {
   min-width: 0;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-btn);
+  flex: 1;
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-panel);
+  outline: none;
+  background: rgb(25 29 23 / 72%);
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 14px;
-  padding: 0 14px;
-  height: 44px;
-  outline: none;
-  transition:
-    border-color var(--transition),
-    box-shadow var(--transition);
+  font-size: 16px;
+  transition: border-color var(--transition), background-color var(--transition), box-shadow var(--transition);
 }
 
-input::placeholder {
+input[type="text"]::placeholder {
   color: var(--text-muted);
   opacity: 0.7;
 }
 
-input:focus {
-  border-color: rgba(232, 255, 71, 0.4);
-  box-shadow: 0 0 0 3px rgba(232, 255, 71, 0.08);
+input[type="text"]:focus {
+  border-color: var(--primary);
+  background: var(--surface-raised);
+  box-shadow: 0 0 0 3px rgb(162 211 152 / 14%);
 }
 
-/* ── Base button ── */
+input[type="text"]:read-only {
+  cursor: wait;
+  opacity: 0.8;
+}
 
 .btn {
-  height: 44px;
-  border: none;
-  border-radius: var(--radius-btn);
-  font-family: var(--font-mono);
+  position: relative;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 10px 20px;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  cursor: pointer;
-  letter-spacing: 0.02em;
-  transition: all var(--transition);
-  white-space: nowrap;
+  letter-spacing: 0.1px;
+  line-height: 20px;
+  transition: box-shadow var(--transition), background-color var(--transition), color var(--transition), transform var(--transition);
 }
 
-.btn:active {
-  transform: scale(0.97);
+.btn::after {
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition);
+}
+
+.btn:hover:not(:disabled)::after,
+.btn:focus-visible:not(:disabled)::after {
+  opacity: 0.08;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .btn:disabled {
-  opacity: 0.45;
   cursor: not-allowed;
-  transform: none;
+  opacity: 0.42;
 }
 
-/* ── Generate (primary) ── */
+.btn-label {
+  position: relative;
+  z-index: 1;
+}
 
 .btn-generate {
-  background: var(--accent);
-  color: #0d0d0f;
-  padding: 0 20px;
+  flex: 0 0 auto;
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 30%);
 }
-
-.btn-generate:hover:not(:disabled) {
-  background: #f2ff6e;
-  box-shadow: 0 0 16px rgba(232, 255, 71, 0.3);
-}
-
-/* ── Random (full-width) ── */
 
 .btn-random {
   width: 100%;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  font-size: 15px;
-}
-
-.btn-random:hover:not(:disabled) {
-  border-color: rgba(255, 255, 255, 0.16);
+  border: 1px solid var(--outline-variant);
+  background: var(--surface-variant);
   color: var(--text);
 }
 
-/* ── Group label ── */
-
-.group-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  opacity: 0.6;
-  text-transform: uppercase;
-  margin-top: 4px;
+.btn-random:hover:not(:disabled) {
+  box-shadow: 0 2px 6px rgb(0 0 0 / 24%);
 }
 
-/* ── Action row (copy / download) ── */
-
+/* Export actions: 下载 PNG is the primary one, the two copy actions are equal
+   secondaries. Adapted from the reference system's tonal/outlined patterns —
+   the reference ships no outlined button variant, so this is a local adaptation. */
 .action-row {
-  display: flex;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
 }
 
 .btn-action {
-  flex: 1;
-  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--outline) 45%, transparent);
   background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  font-size: 12px;
-  line-height: 1.3;
-  height: auto;
-  min-height: 44px;
-  padding: 8px 4px;
-  white-space: normal;
-  word-break: keep-all;
-}
-
-.btn-action:hover:not(:disabled) {
-  border-color: rgba(255, 255, 255, 0.16);
   color: var(--text);
 }
 
 .btn-action.btn-dl {
-  border-color: rgba(232, 255, 71, 0.3);
-  color: var(--accent);
+  grid-column: 1 / -1;
+  border-color: transparent;
+  background: var(--primary-container);
+  color: var(--on-primary-container);
 }
 
-.btn-action.btn-dl:hover:not(:disabled) {
-  background: var(--accent-dim);
-  border-color: rgba(232, 255, 71, 0.5);
+.btn-action:hover:not(:disabled) {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 30%);
 }
-
-/* ── Checkbox ── */
 
 .checkbox-row {
   display: flex;
-  justify-content: center;
-  margin-top: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .checkbox-label {
-  display: flex;
+  display: inline-flex;
+  min-height: 44px;
   align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  color: var(--text-muted);
-  transition: color var(--transition);
-}
-
-.checkbox-label:hover {
+  gap: var(--space-2);
   color: var(--text);
+  cursor: pointer;
+  font-size: 14px;
 }
 
-.checkbox-label input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--accent);
+.checkbox-label input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--primary);
   cursor: pointer;
+}
+
+.status {
+  min-height: 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.status[data-state="success"] {
+  color: var(--primary);
+}
+
+.status[data-state="error"] {
+  color: var(--error);
+}
+
+@media (max-width: 420px) {
+  .input-row {
+    flex-direction: column;
+  }
+
+  /* Stacked, the input must keep its 44px height: `flex: 1` sets a 0 flex-basis,
+     which overrides `height` along the column axis and collapses the field. */
+  .input-row input[type="text"] {
+    flex: none;
+  }
+
+  .btn-generate {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
 }

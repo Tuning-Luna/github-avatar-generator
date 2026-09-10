@@ -1,22 +1,44 @@
 // @ts-nocheck
 
-import { canvas, nameInput, btnGenerate, btnRandom, btnDownload, btnCopyName, btnCopyImage } from "./ui/elements.js"
-import { generate, random, download, renderFor, randomName, copyName, copyImage } from "./ui/handlers.js"
+import {
+  btnCopyImage,
+  btnCopyName,
+  btnDownload,
+  btnRandom,
+  canvas,
+  generationForm,
+  nameInput,
+  whiteBorderCheckbox,
+} from "./ui/elements.js"
+import {
+  copyImage,
+  copyName,
+  download,
+  generate,
+  random,
+  renderFor,
+  randomName,
+  updateExportMeta,
+} from "./ui/handlers.js"
 
-// ─── Bindings ─────────────────────────────────────────────────────────────────
+function handleAsync(action) {
+  return (event) => {
+    event?.preventDefault()
+    void action(event)
+  }
+}
 
-btnGenerate.addEventListener("click", generate)
-btnRandom.addEventListener("click", random)
-btnDownload.addEventListener("click", download)
-btnCopyName.addEventListener("click", copyName)
-btnCopyImage.addEventListener("click", copyImage)
-nameInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") generate()
-})
+generationForm.addEventListener("submit", handleAsync(generate))
+btnRandom.addEventListener("click", handleAsync(random))
+btnDownload.addEventListener("click", handleAsync(download))
+btnCopyName.addEventListener("click", handleAsync(copyName))
+btnCopyImage.addEventListener("click", handleAsync(copyImage))
+whiteBorderCheckbox.addEventListener("change", updateExportMeta)
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
-
-// Render a random identicon on load and fill the input box
+updateExportMeta()
 const initialName = randomName()
 nameInput.value = initialName
-renderFor(initialName)
+void renderFor(initialName)
+
+// Keep a semantic canvas fallback for browsers that cannot render canvas pixels.
+canvas.textContent = "你的头像预览将在这里显示。"

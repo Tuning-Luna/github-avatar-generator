@@ -7,19 +7,50 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html,
-body {
-  height: 100%;
-  overflow: hidden;
+html {
+  min-height: 100%;
+  background: var(--bg);
 }
 
 body {
-  font-family: var(--font-mono);
-  background: var(--bg);
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  background:
+    radial-gradient(circle at 12% 0%, rgb(67 113 57 / 18%), transparent 32rem),
+    radial-gradient(circle at 100% 100%, rgb(25 82 35 / 14%), transparent 30rem),
+    var(--bg);
   color: var(--text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  position: relative;
+  padding: 24px;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

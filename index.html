@@ -1,123 +1,90 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0" />
-    <title>GitHub Avatar Generator</title>
-    <link
-      rel="preconnect"
-      href="https://fonts.googleapis.com" />
-    <link
-      rel="preconnect"
-      href="https://fonts.gstatic.com"
-      crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap"
-      rel="stylesheet" />
-    <link
-      rel="stylesheet"
-      href="core/tokens.css" />
-    <link
-      rel="stylesheet"
-      href="core/reset.css" />
-    <link
-      rel="stylesheet"
-      href="ui/layout.css" />
-    <link
-      rel="stylesheet"
-      href="ui/canvas.css" />
-    <link
-      rel="stylesheet"
-      href="ui/controls.css" />
-    <link
-      rel="stylesheet"
-      href="ui/responsive.css" />
-    <link
-      rel="icon"
-      href="./favicon.svg"
-      type="image/svg+xml" />
-  </head>
-  <body>
-    <div class="bg-grid"></div>
 
-    <main class="wrap">
-      <header class="header">
-        <span class="badge">SHA-256</span>
-        <h1 class="title">GitHub Avatar<br /><em>Generator</em></h1>
-        <p class="sub">Input any string to generate a unique GitHub avatar</p>
-        <p class="sub">输入任意字符串，生成唯一 GitHub 头像</p>
-      </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#10140f" />
+  <title>GitHub Avatar Generator</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.3.0/latin.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/manrope@5.3.0/latin.css" />
+  <link rel="stylesheet" href="core/tokens.css" />
+  <link rel="stylesheet" href="core/reset.css" />
+  <link rel="stylesheet" href="ui/layout.css" />
+  <link rel="stylesheet" href="ui/canvas.css" />
+  <link rel="stylesheet" href="ui/controls.css" />
+  <link rel="stylesheet" href="ui/responsive.css" />
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+</head>
 
-      <section class="canvas-section">
-        <div class="canvas-wrap">
-          <canvas
-            id="cv"
-            width="250"
-            height="250"></canvas>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <main class="wrap">
+    <header class="header">
+      <span class="eyebrow">SHA-256 · IDENTICON</span>
+      <h1 class="title">GitHub Avatar <em>Generator</em></h1>
+      <p class="sub">输入任意字符串，生成一个独一无二的 GitHub 风格头像。</p>
+    </header>
+
+    <div class="workspace">
+      <figure class="panel preview-panel" aria-labelledby="previewTitle">
+        <figcaption class="panel-heading" id="previewTitle">
+          <b>头像预览</b>
+        </figcaption>
+        <div class="preview-frame has-border" id="previewFrame">
+          <canvas id="cv" width="1000" height="1000" role="img" aria-label="生成的 GitHub 风格头像"></canvas>
         </div>
-        <p
-          class="name-label"
-          id="nameLabel">
-          —
-        </p>
+        <p class="name-label" id="nameLabel">尚未生成</p>
+      </figure>
+
+      <section class="panel controls-panel" aria-label="头像生成与导出控制">
+        <form class="control-section" id="generationForm">
+          <div>
+            <h2 class="section-title" id="seedTitle">输入种子</h2>
+            <p class="section-hint" id="nameHint">点击生成后，才会提交并更新预览。</p>
+          </div>
+          <div class="input-row">
+            <input type="text" id="nameInput" placeholder="仓库名、用户名或任意文字" autocomplete="off" spellcheck="false"
+              aria-labelledby="seedTitle" aria-describedby="nameHint" />
+            <button class="btn btn-generate" id="btnGenerate" type="submit">
+              <span class="btn-label">生成头像</span>
+            </button>
+          </div>
+          <button class="btn btn-random" id="btnRandom" type="button">
+            <span class="btn-label">随机生成</span>
+          </button>
+        </form>
+
+        <section class="control-section" aria-labelledby="exportTitle">
+          <div>
+            <h2 class="section-title" id="exportTitle">导出图片</h2>
+          </div>
+          <div class="checkbox-row">
+            <label class="checkbox-label" for="whiteBorder">
+              <input type="checkbox" id="whiteBorder" checked />
+              <span>添加边框</span>
+            </label>
+          </div>
+          <div class="action-row">
+            <button class="btn btn-action btn-dl" id="btnDownload" type="button" disabled>
+              <span class="btn-label">保存图片</span>
+            </button>
+            <button class="btn btn-action" id="btnCopyImage" type="button" disabled>
+              <span class="btn-label">复制图片</span>
+            </button>
+            <button class="btn btn-action" id="btnCopyName" type="button" disabled>
+              <span class="btn-label">复制字符串</span>
+            </button>
+          </div>
+          <p class="status" id="status" role="status" aria-live="polite" aria-atomic="true">正在生成…</p>
+        </section>
       </section>
+    </div>
+  </main>
 
-      <section class="controls">
-        <div class="input-row">
-          <input
-            type="text"
-            id="nameInput"
-            placeholder="repo name / username / anything…"
-            autocomplete="off"
-            spellcheck="false" />
-          <button
-            class="btn btn-generate"
-            id="btnGenerate">
-            Generate 生成
-          </button>
-        </div>
+  <script type="module" src="main.js"></script>
+</body>
 
-        <button
-          class="btn btn-random"
-          id="btnRandom">
-          ⚄ Random Generate 随机生成
-        </button>
-
-        <div class="group-label">Copy & Export / 复制与导出</div>
-        <div class="action-row">
-          <button
-            class="btn btn-action btn-dl"
-            id="btnCopyName">
-            Copy String 复制字符串
-          </button>
-          <button
-            class="btn btn-action btn-dl"
-            id="btnCopyImage">
-            Copy Image 复制图片
-          </button>
-          <button
-            class="btn btn-action btn-dl"
-            id="btnDownload">
-            Download Image 下载图片
-          </button>
-        </div>
-
-        <div class="checkbox-row">
-          <label class="checkbox-label">
-            <input
-              type="checkbox"
-              id="whiteBorder"
-              checked />
-            <span>Add Border 添加边框</span>
-          </label>
-        </div>
-      </section>
-    </main>
-
-    <script
-      type="module"
-      src="main.js"></script>
-  </body>
 </html>

@@ -1,15 +1,33 @@
+/* Selective palette and type tokens adapted from the supplied design-system reference. */
 :root {
-  --bg: #0d0d0f;
-  --surface: #16161a;
-  --surface-2: #1e1e24;
-  --border: rgba(255, 255, 255, 0.08);
-  --accent: #e8ff47;
-  --accent-dim: rgba(232, 255, 71, 0.12);
-  --text: #f0eff5;
-  --text-muted: #7c7a8a;
-  --radius-card: 20px;
-  --radius-btn: 10px;
-  --font-display: "Syne", sans-serif;
-  --font-mono: "DM Mono", monospace;
-  --transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  color-scheme: dark;
+  --bg: #10140f;
+  --surface: #191d17;
+  --surface-raised: #20251e;
+  --surface-variant: #323630;
+  --surface-glass: rgb(25 29 23 / 88%);
+  --primary: #a2d398;
+  --on-primary: #0d380e;
+  --primary-container: #255023;
+  --on-primary-container: #bdf0b3;
+  --text: #e0e4da;
+  --text-muted: #c2c8bc;
+  --outline: #8c9388;
+  --outline-variant: #42493f;
+  --error: #ffb4ab;
+  --font-display: "Manrope", "Inter", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-body: "Inter", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+  --radius-card: 28px;
+  --radius-panel: 16px;
+  --radius-pill: 999px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --transition: 200ms cubic-bezier(0.2, 0, 0, 1);
+  --glass-border: rgb(140 147 136 / 32%);
+  --glass-highlight: inset 0 1px 0 rgb(255 255 255 / 10%);
 }
