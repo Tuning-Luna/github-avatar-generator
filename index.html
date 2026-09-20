@@ -33,8 +33,10 @@
         <figcaption class="panel-heading" id="previewTitle">
           <b>头像预览</b>
         </figcaption>
-        <div class="preview-frame has-border" id="previewFrame">
-          <canvas id="cv" width="1000" height="1000" role="img" aria-label="生成的 GitHub 风格头像"></canvas>
+        <div class="preview-cap">
+          <div class="preview-frame has-border" id="previewFrame">
+            <canvas id="cv" width="1000" height="1000" role="img" aria-label="生成的 GitHub 风格头像"></canvas>
+          </div>
         </div>
         <p class="name-label" id="nameLabel">尚未生成</p>
       </figure>
@@ -66,6 +68,17 @@
               <input type="checkbox" id="whiteBorder" checked />
               <span>添加边框</span>
             </label>
+          </div>
+          <!-- Revealed only while 添加边框 is checked. The numeric attributes are a
+               static pre-JS baseline; core/config.js is the authoritative source and
+               main.js re-applies them on load. -->
+          <div class="border-row" id="borderRow">
+            <div class="border-head">
+              <label class="border-label" for="borderWidth">边框宽度</label>
+              <output class="border-value" id="borderValue" for="borderWidth">80px</output>
+            </div>
+            <input type="range" class="border-range" id="borderWidth" min="0" max="200" step="5" value="80" />
+            <p class="section-hint" id="borderHint">导出 1160 × 1160px</p>
           </div>
           <div class="action-row">
             <button class="btn btn-action btn-dl" id="btnDownload" type="button" disabled>

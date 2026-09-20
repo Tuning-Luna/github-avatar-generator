@@ -13,9 +13,13 @@ import {
   btnCopyName,
   btnCopyImage,
   whiteBorderCheckbox,
+  borderRow,
+  borderWidthInput,
+  borderWidthValue,
+  borderWidthHint,
 } from "./elements.js"
 import { drawIdenticon } from "../core/drawer.js"
-import { canvasToBlob, getExportCanvas } from "./export.js"
+import { borderGeometry, canvasToBlob, getExportCanvas } from "./export.js"
 import { SAMPLE_NAMES } from "./sample-names.js"
 
 const state = {
@@ -31,8 +35,34 @@ function setStatus(message, type = "") {
   status.dataset.state = type
 }
 
-function updateExportMeta() {
-  canvasFrame.classList.toggle("has-border", whiteBorderCheckbox.checked)
+/** Border width in px for the next export, or 0 when the checkbox is off. */
+function selectedBorderWidth() {
+  return whiteBorderCheckbox.checked ? Number(borderWidthInput.value) : 0
+}
+
+/**
+ * Reflect the border controls in the preview frame and the export readout.
+ * The preview padding comes from the same geometry as the export canvas, so the
+ * frame on screen matches the composed PNG without re-rendering the pattern.
+ */
+function syncBorderControls() {
+  const width = Number(borderWidthInput.value)
+  const { edge, paddingRatio } = borderGeometry(width)
+  const enabled = whiteBorderCheckbox.checked
+
+  canvasFrame.classList.toggle("has-border", enabled)
+  canvasFrame.style.setProperty("--avatar-border-padding", `${(paddingRatio * 100).toFixed(3)}%`)
+
+  borderRow.hidden = !enabled
+  borderWidthValue.textContent = `${width}px`
+  borderWidthInput.setAttribute("aria-valuetext", `${width}px，导出 ${edge} × ${edge}px`)
+  borderWidthHint.textContent = `导出 ${edge} × ${edge}px`
+
+  // Native ranges expose no filled-track styling, so the fill share is handed to CSS.
+  const min = Number(borderWidthInput.min)
+  const max = Number(borderWidthInput.max)
+  const progress = max > min ? (width - min) / (max - min) : 0
+  borderWidthInput.style.setProperty("--range-progress", `${progress * 100}%`)
 }
 
 function setLoading(on) {
@@ -122,7 +152,7 @@ function random() {
 
 function currentExportCanvas() {
   if (state.renderedName === null || !state.backgroundColor) return null
-  return getExportCanvas(canvas, state.backgroundColor, whiteBorderCheckbox.checked)
+  return getExportCanvas(canvas, state.backgroundColor, selectedBorderWidth())
 }
 
 async function download() {
@@ -214,6 +244,6 @@ export {
   download,
   copyName,
   copyImage,
-  updateExportMeta,
+  syncBorderControls,
   state,
 }

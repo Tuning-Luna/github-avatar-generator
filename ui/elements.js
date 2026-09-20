@@ -10,6 +10,10 @@ const btnGenerate = document.getElementById("btnGenerate")
 const btnRandom = document.getElementById("btnRandom")
 const btnDownload = document.getElementById("btnDownload")
 const whiteBorderCheckbox = document.getElementById("whiteBorder")
+const borderRow = document.getElementById("borderRow")
+const borderWidthInput = document.getElementById("borderWidth")
+const borderWidthValue = document.getElementById("borderValue")
+const borderWidthHint = document.getElementById("borderHint")
 const btnCopyName = document.getElementById("btnCopyName")
 const btnCopyImage = document.getElementById("btnCopyImage")
 
@@ -24,6 +28,10 @@ export {
   btnRandom,
   btnDownload,
   whiteBorderCheckbox,
+  borderRow,
+  borderWidthInput,
+  borderWidthValue,
+  borderWidthHint,
   btnCopyName,
   btnCopyImage,
 }

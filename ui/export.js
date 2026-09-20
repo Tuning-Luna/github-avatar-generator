@@ -1,24 +1,48 @@
 // @ts-nocheck
 
-import { BORDER_SIZE, SIZE } from "../core/config.js"
+import { BORDER_MAX, SIZE } from "../core/config.js"
+
+/**
+ * Coerce a border width into a supported whole pixel count.
+ * Non-numeric, negative, or over-large input resolves into [0, BORDER_MAX] so a
+ * bad caller cannot allocate a runaway canvas.
+ */
+function normalizeBorderWidth(width) {
+  const value = Number(width)
+  if (!Number.isFinite(value)) return 0
+  return Math.min(Math.max(Math.round(value), 0), BORDER_MAX)
+}
+
+/**
+ * Describe a border width for both the export canvas and the scaled preview.
+ * `paddingRatio` is the border's share of the export edge, which is what the
+ * preview frame needs to shrink the pattern by the same amount as the PNG.
+ */
+function borderGeometry(borderWidth) {
+  const border = normalizeBorderWidth(borderWidth)
+  const edge = SIZE + border * 2
+  return { border, edge, paddingRatio: border / edge }
+}
 
 /**
  * Compose the canvas used by both PNG export actions.
+ * A border width of 0 returns the source canvas unchanged.
  * The renderer's HSL background is passed in so color management cannot alter it.
  */
-function getExportCanvas(sourceCanvas, backgroundColor, addBorder) {
-  if (!addBorder) return sourceCanvas
+function getExportCanvas(sourceCanvas, backgroundColor, borderWidth) {
+  const { border, edge } = borderGeometry(borderWidth)
+  if (border === 0) return sourceCanvas
 
   const borderedCanvas = document.createElement("canvas")
-  borderedCanvas.width = SIZE + BORDER_SIZE * 2
-  borderedCanvas.height = SIZE + BORDER_SIZE * 2
+  borderedCanvas.width = edge
+  borderedCanvas.height = edge
 
   const context = borderedCanvas.getContext("2d")
   if (!context) throw new Error("Unable to create the export canvas.")
 
   context.fillStyle = backgroundColor
-  context.fillRect(0, 0, borderedCanvas.width, borderedCanvas.height)
-  context.drawImage(sourceCanvas, BORDER_SIZE, BORDER_SIZE)
+  context.fillRect(0, 0, edge, edge)
+  context.drawImage(sourceCanvas, border, border)
   return borderedCanvas
 }
 
@@ -35,4 +59,4 @@ function canvasToBlob(sourceCanvas) {
   })
 }
 
-export { getExportCanvas, canvasToBlob }
+export { getExportCanvas, canvasToBlob, borderGeometry }

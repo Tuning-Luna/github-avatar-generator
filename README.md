@@ -21,7 +21,7 @@ _Generate GitHub-style identicons from any string_
 
 - **SHA-256 Based** - Deterministic, unique avatar for any input
 - **1000 x 1000px HD Output** - High-resolution PNG source canvas
-- **Border Option** - Add a background-colored 80px border to exports (1160 x 1160px)
+- **Adjustable Border** - Add a background-colored border and set its width with a slider (0-200px), previewed live before saving
 - **Explicit Preview** - Edit a seed, then press Generate or Enter to commit it
 - **Random Generator** - Quick random name with number suffix
 - **Responsive** - Works with keyboard, mobile widths, and short landscape viewports
@@ -54,7 +54,7 @@ The tests cover hashing, color conversion, deterministic mirrored rendering, Uni
 3. **Color** -> Extract HSL from the hash and convert it to RGB
 4. **Pattern** -> Use hash bits to determine 5 x 5 mirrored grid cells
 5. **Render** -> Draw on an HTML5 canvas at 1000 x 1000 resolution
-6. **Export** -> Download or copy PNG with an optional matching-color border
+6. **Export** -> Download or copy a PNG with an optional matching-color border of any width from 0 to 200px per side (1000 x 1000px up to 1400 x 1400px)
 
 The rendering algorithm lives in `core/`. UI state and browser actions live in `ui/`; the app does not import or depend on the supplied `design-system/` directory.
 

@@ -157,6 +157,114 @@ input[type="text"]:read-only {
   cursor: pointer;
 }
 
+/* Border width. The row is hidden while 添加边框 is unchecked, so the control is
+   only present when it can affect the export. */
+.border-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.border-row[hidden] {
+  display: none;
+}
+
+.border-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.border-label {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.border-value {
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Styled native range input, adapted from the reference system's slider: a 4px
+   track with a primary handle that grows on hover, focus and drag. The filled
+   share is passed in as --range-progress because a native range cannot style it. */
+.border-range {
+  width: 100%;
+  min-width: 0;
+  height: 20px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Chromium: filled portion drawn as a gradient up to --range-progress. */
+.border-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(
+    to right,
+    var(--primary) 0 var(--range-progress, 0%),
+    var(--surface-variant) var(--range-progress, 0%) 100%
+  );
+}
+
+.border-range::-moz-range-track {
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-variant);
+}
+
+/* Firefox has a native progress pseudo-element for the filled portion. */
+.border-range::-moz-range-progress {
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+}
+
+.border-range::-webkit-slider-thumb {
+  width: 12px;
+  height: 12px;
+  /* (4px track − 12px thumb) / 2 keeps the thumb centered on the track. */
+  margin-top: -4px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  border-radius: var(--radius-pill);
+  background-color: var(--primary);
+  transition: transform var(--transition);
+}
+
+.border-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background-color: var(--primary);
+  transition: transform var(--transition);
+}
+
+.border-range:hover::-webkit-slider-thumb,
+.border-range:focus-visible::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+
+.border-range:hover::-moz-range-thumb,
+.border-range:focus-visible::-moz-range-thumb {
+  transform: scale(1.2);
+}
+
+.border-range:active::-webkit-slider-thumb {
+  transform: scale(1.4);
+}
+
+.border-range:active::-moz-range-thumb {
+  transform: scale(1.4);
+}
+
 .status {
   min-height: 20px;
   color: var(--text-muted);
@@ -189,6 +297,15 @@ input[type="text"]:read-only {
 
 @media (prefers-reduced-motion: reduce) {
   .btn:active:not(:disabled) {
+    transform: none;
+  }
+
+  .border-range:hover::-webkit-slider-thumb,
+  .border-range:focus-visible::-webkit-slider-thumb,
+  .border-range:active::-webkit-slider-thumb,
+  .border-range:hover::-moz-range-thumb,
+  .border-range:focus-visible::-moz-range-thumb,
+  .border-range:active::-moz-range-thumb {
     transform: none;
   }
 }

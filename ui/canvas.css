@@ -1,20 +1,31 @@
+/* Percentage padding resolves against the containing block, not the element
+   itself, so the frame is capped one level up: that keeps its own width equal to
+   the percentage base and the preview border exactly proportional to the PNG. */
+.preview-cap {
+  width: 100%;
+  max-width: 320px;
+}
+
 /* Square and unrounded on purpose: the preview must match the exported PNG,
    which has hard corners and no outline. */
 .preview-frame {
   --avatar-bg: var(--surface-variant);
   display: grid;
-  width: min(100%, 320px);
+  width: 100%;
   aspect-ratio: 1;
   place-items: center;
   padding: 0;
   background: var(--avatar-bg);
   box-shadow: 0 8px 24px rgb(0 0 0 / 30%);
-  transition: background-color var(--transition), padding var(--transition), opacity var(--transition);
+  /* Padding is deliberately not transitioned: the preview has to show the
+     exported border width exactly, including mid-drag on the width slider. */
+  transition: background-color var(--transition), opacity var(--transition);
 }
 
 .preview-frame.has-border {
-  /* 80px border / 1160px export edge, matching the PNG composition. */
-  padding: 6.89655%;
+  /* Share of the export edge taken by the border — border / (1000 + 2 × border) —
+     kept in sync by ui/handlers.js so the frame matches the PNG composition. */
+  padding: var(--avatar-border-padding, 0);
 }
 
 canvas {
