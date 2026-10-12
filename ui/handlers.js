@@ -47,16 +47,21 @@ function selectedBorderWidth() {
  */
 function syncBorderControls() {
   const width = Number(borderWidthInput.value)
-  const { edge, paddingRatio } = borderGeometry(width)
   const enabled = whiteBorderCheckbox.checked
+  // Geometry follows the width the export will really use, so with the border off
+  // the row that stays on screen reports the 1000px square it will produce.
+  const { edge, paddingRatio } = borderGeometry(selectedBorderWidth())
 
   canvasFrame.classList.toggle("has-border", enabled)
   canvasFrame.style.setProperty("--avatar-border-padding", `${(paddingRatio * 100).toFixed(3)}%`)
 
-  borderRow.hidden = !enabled
+  // Disabled rather than hidden: the row keeps its place in the panel, so the
+  // width can still be read — and set up — without switching the border on.
+  borderWidthInput.disabled = !enabled
+  borderRow.classList.toggle("is-disabled", !enabled)
   borderWidthValue.textContent = `${width}px`
-  borderWidthInput.setAttribute("aria-valuetext", `${width}px，导出 ${edge} × ${edge}px`)
-  borderWidthHint.textContent = `导出 ${edge} × ${edge}px`
+  borderWidthInput.setAttribute("aria-valuetext", `${width}px，尺寸 ${edge} × ${edge}px`)
+  borderWidthHint.textContent = `尺寸 ${edge} × ${edge}px`
 
   // Native ranges expose no filled-track styling, so the fill share is handed to CSS.
   const min = Number(borderWidthInput.min)

@@ -202,16 +202,20 @@ input[type="text"]:read-only {
   background: var(--on-primary);
 }
 
-/* Border width. The row is hidden while 添加边框 is unchecked, so the control is
-   only present when it can affect the export. */
+/* Border width. 添加边框 turns the slider off instead of removing it, so the row
+   keeps its place and the readout keeps reporting the size the export will have. */
 .border-row {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
 }
 
-.border-row[hidden] {
-  display: none;
+/* The text dims as a group so the inert handle does not sit under a label that
+   still reads as active. 0.6 leaves the readout above 4.5:1 on the panel. */
+.border-row.is-disabled .border-label,
+.border-row.is-disabled .border-value,
+.border-row.is-disabled .section-hint {
+  opacity: 0.6;
 }
 
 .border-head {
@@ -292,13 +296,13 @@ input[type="text"]:read-only {
   transition: transform var(--transition);
 }
 
-.border-range:hover::-webkit-slider-thumb,
-.border-range:focus-visible::-webkit-slider-thumb {
+.border-range:hover:not(:disabled)::-webkit-slider-thumb,
+.border-range:focus-visible:not(:disabled)::-webkit-slider-thumb {
   transform: scale(1.2);
 }
 
-.border-range:hover::-moz-range-thumb,
-.border-range:focus-visible::-moz-range-thumb {
+.border-range:hover:not(:disabled)::-moz-range-thumb,
+.border-range:focus-visible:not(:disabled)::-moz-range-thumb {
   transform: scale(1.2);
 }
 
@@ -308,6 +312,27 @@ input[type="text"]:read-only {
 
 .border-range:active::-moz-range-thumb {
   transform: scale(1.4);
+}
+
+/* Disabled while 添加边框 is unchecked. The handle needs its own muted colors
+   rather than the group opacity above: a faded track would sink into the panel
+   and leave the thumb looking unattached. Both the fill and the thumb go neutral
+   so an inert slider cannot be read as a green, active one. */
+.border-range:disabled {
+  cursor: not-allowed;
+}
+
+.border-range:disabled::-webkit-slider-runnable-track {
+  background: var(--outline-variant);
+}
+
+.border-range:disabled::-moz-range-progress {
+  background: var(--outline-variant);
+}
+
+.border-range:disabled::-webkit-slider-thumb,
+.border-range:disabled::-moz-range-thumb {
+  background-color: var(--outline);
 }
 
 .status {
@@ -345,11 +370,11 @@ input[type="text"]:read-only {
     transform: none;
   }
 
-  .border-range:hover::-webkit-slider-thumb,
-  .border-range:focus-visible::-webkit-slider-thumb,
+  .border-range:hover:not(:disabled)::-webkit-slider-thumb,
+  .border-range:focus-visible:not(:disabled)::-webkit-slider-thumb,
   .border-range:active::-webkit-slider-thumb,
-  .border-range:hover::-moz-range-thumb,
-  .border-range:focus-visible::-moz-range-thumb,
+  .border-range:hover:not(:disabled)::-moz-range-thumb,
+  .border-range:focus-visible:not(:disabled)::-moz-range-thumb,
   .border-range:active::-moz-range-thumb {
     transform: none;
   }
