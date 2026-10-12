@@ -1,9 +1,11 @@
-# Features | 特性
+# 特性
 
-- **SHA-256 Based** - Deterministic, unique avatar for any input
-- **1000 x 1000px HD Output** - High-resolution PNG source canvas
-- **Adjustable Border** - Add a background-colored border and set its width with a slider (0-500px), previewed live before saving
-- **Explicit Preview** - Edit a seed, then press Generate or Enter to commit it
-- **Random Generator** - Quick random name with number suffix
-- **Responsive** - Works with keyboard, mobile widths, and short landscape viewports
-- **Accessible feedback** - Labeled input, named canvas, and visible status messages
+[简体中文](./features.md) | [English](./features.en.md)
+
+- **基于 SHA-256** - 任意输入都得到确定且唯一的头像
+- **1000 x 1000px 高清输出** - 高分辨率 PNG 源画布
+- **可调边框** - 添加与背景同色的边框，用滑块设置宽度（0-500px），保存前实时预览
+- **显式生成** - 先编辑种子，再按「生成」或回车提交
+- **随机生成** - 一键得到带数字后缀的随机名字
+- **响应式** - 支持键盘操作、移动端宽度与矮横向视口
+- **无障碍反馈** - 带标签的输入框、有名称的画布与可见的状态提示

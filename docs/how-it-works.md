@@ -1,10 +1,12 @@
-# How It Works | 工作原理
+# 工作原理
 
-1. **Input** -> Trim the submitted string; the renderer lowercases it for hashing
-2. **Hash** -> Compute SHA-256
-3. **Color** -> Extract HSL from the hash and convert it to RGB
-4. **Pattern** -> Use hash bits to determine 5 x 5 mirrored grid cells
-5. **Render** -> Draw on an HTML5 canvas at 1000 x 1000 resolution
-6. **Export** -> Download or copy a PNG with an optional matching-color border of any width from 0 to 500px per side (1000 x 1000px up to 2000 x 2000px)
+[简体中文](./how-it-works.md) | [English](./how-it-works.en.md)
 
-The rendering algorithm lives in `core/`. UI state and browser actions live in `ui/`; the app does not import or depend on the supplied `design-system/` directory.
+1. **输入** -> 裁剪提交的字符串；渲染器在哈希前将其转为小写
+2. **哈希** -> 计算 SHA-256
+3. **配色** -> 从哈希中提取 HSL 并转换为 RGB
+4. **图案** -> 用哈希位决定 5 x 5 镜像网格中每个格子的填充
+5. **渲染** -> 在 HTML5 canvas 上以 1000 x 1000 分辨率绘制
+6. **导出** -> 下载或复制 PNG，可选与背景同色的边框，每边宽度 0 至 500px（1000 x 1000px 至 2000 x 2000px）
+
+渲染算法位于 `core/`，UI 状态与浏览器操作位于 `ui/`；应用不导入也不依赖随附的 `design-system/` 目录。

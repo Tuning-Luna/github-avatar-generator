@@ -1,3 +1,5 @@
-# License
+# 许可
 
-See `LICENSE` for project licensing details.
+[简体中文](./license.md) | [English](./license.en.md)
+
+本项目基于 MIT 许可发布，详情见仓库根目录的 [`LICENSE`](../LICENSE)。
