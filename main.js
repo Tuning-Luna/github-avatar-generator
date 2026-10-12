@@ -9,6 +9,7 @@ import {
   canvas,
   generationForm,
   nameInput,
+  varyBackgroundCheckbox,
   whiteBorderCheckbox,
 } from "./ui/elements.js"
 import {
@@ -17,6 +18,7 @@ import {
   download,
   generate,
   random,
+  refreshBackground,
   renderFor,
   randomName,
   syncBorderControls,
@@ -48,6 +50,7 @@ borderWidthInput.max = String(BORDER_MAX)
 borderWidthInput.step = String(BORDER_STEP)
 borderWidthInput.value = String(DEFAULT_BORDER_SIZE)
 whiteBorderCheckbox.addEventListener("change", syncBorderControls)
+varyBackgroundCheckbox.addEventListener("change", handleAsync(refreshBackground))
 // `input` rather than `change`: the preview must follow the handle while dragging.
 borderWidthInput.addEventListener("input", syncBorderControls)
 

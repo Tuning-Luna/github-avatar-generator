@@ -8,6 +8,7 @@ const nameLabel = document.getElementById("nameLabel")
 const status = document.getElementById("status")
 const btnGenerate = document.getElementById("btnGenerate")
 const btnRandom = document.getElementById("btnRandom")
+const varyBackgroundCheckbox = document.getElementById("varyBackground")
 const btnDownload = document.getElementById("btnDownload")
 const whiteBorderCheckbox = document.getElementById("whiteBorder")
 const borderRow = document.getElementById("borderRow")
@@ -26,6 +27,7 @@ export {
   status,
   btnGenerate,
   btnRandom,
+  varyBackgroundCheckbox,
   btnDownload,
   whiteBorderCheckbox,
   borderRow,

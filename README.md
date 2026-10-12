@@ -21,6 +21,8 @@ _Generate GitHub-style identicons from any string_
 
 - **SHA-256 Based** - Deterministic, unique avatar for any input
 - **1000 x 1000px HD Output** - High-resolution PNG source canvas
+- **Guaranteed Contrast** - The pattern and its field always differ by at least 4.5:1 (WCAG), and no seed can render as a single flat color
+- **Optional Colored Field** - Off by default, giving a flat white background with an automatically darkened pattern; check 改变背景颜色 for a related-hue field that is deep or pale depending on the pattern's brightness
 - **Adjustable Border** - Add a background-colored border and set its width with a slider (0-500px), previewed live before saving
 - **Explicit Preview** - Edit a seed, then press Generate or Enter to commit it
 - **Random Generator** - Quick random name with number suffix
@@ -51,8 +53,8 @@ The tests cover hashing, color conversion, deterministic mirrored rendering, Uni
 
 1. **Input** -> Trim the submitted string; the renderer lowercases it for hashing
 2. **Hash** -> Compute SHA-256
-3. **Color** -> Draw the pattern's hue, saturation (40-100%) and lightness (35-72%) from the hash, then derive the background from a second set of bytes: the field takes a related hue (same, analogous, complementary or triadic) and is pushed to the opposite side of the pattern's lightness, so a light pattern sits on a deep field and a dark one on a pale field
-4. **Pattern** -> Read one hash byte per independent cell and ink it when the byte falls below the density tier's threshold, giving sparse, balanced or dense patterns on a 5 x 5 mirrored grid
+3. **Color** -> Take the pattern's hue and saturation from the hash, and choose its brightness as a *relative-luminance* target rather than an HSL lightness, because luminance is what contrast actually depends on. With 改变背景颜色 checked, the field takes a related hue (same, analogous, complementary or triadic) at the most tinted lightness that still clears 4.5:1 against the pattern; unchecked, the field is flat white and the pattern is darkened to clear the same target on its own
+4. **Pattern** -> Read one hash byte per independent cell and ink it when the byte falls below the density tier's threshold, giving sparse, balanced or dense patterns on a 5 x 5 mirrored grid, then pull the coverage back inside 4-21 of the 25 drawn cells so no seed renders as one flat color
 5. **Render** -> Draw on an HTML5 canvas at 1000 x 1000 resolution
 6. **Export** -> Download or copy a PNG with an optional matching-color border of any width from 0 to 500px per side (1000 x 1000px up to 2000 x 2000px)
 
