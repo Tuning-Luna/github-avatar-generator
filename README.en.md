@@ -1,6 +1,7 @@
+<h1 align="center">Github Avatar Generator</h1>
+
 ![](./assets/background.png)
 
-# GitHub Avatar Generator
 
 <div align="center">
 
@@ -24,14 +25,9 @@
 - [Run locally](./docs/run-locally.en.md)
 - [Verify](./docs/verify.en.md)
 - [How It Works](./docs/how-it-works.en.md)
+- [Contributing](./docs/contributing.en.md)
 - [License](./docs/license.en.md)
 
 ## Contributing
 
-Contributions of any kind are welcome: bug reports, feature suggestions, documentation improvements, and code.
-
-- **Report a problem** — open an [issue](https://github.com/Tuning-Luna/github-avatar-generator/issues) with the steps to reproduce, the expected result, and the actual result
-- **Send code** — fork the repository, branch off `main`, and open a pull request when the change is ready
-- **Check before submitting** — run the regression tests and preview locally first, as described in [Run locally](./docs/run-locally.en.md) and [Verify](./docs/verify.en.md)
-
-This is a build-free vanilla ES module app with no runtime dependencies, so a change takes effect on page reload with no bundling step. Keep asset, stylesheet, and module URLs relative so the app keeps working below the GitHub Pages subpath.
+Contributions of any kind are welcome: bug reports, feature suggestions, documentation improvements, and code. See the [contributing guide](./docs/contributing.en.md).

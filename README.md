@@ -1,6 +1,8 @@
+<h1 align="center">Github Avatar Generator</h1>
+
 ![](./assets/background.png)
 
-# GitHub Avatar Generator
+
 
 <div align="center">
 
@@ -24,14 +26,9 @@
 - [本地运行](./docs/run-locally.md)
 - [验证](./docs/verify.md)
 - [工作原理](./docs/how-it-works.md)
+- [贡献指南](./docs/contributing.md)
 - [许可](./docs/license.md)
 
 ## 欢迎贡献
 
-欢迎任何形式的贡献：报告问题、提出建议、完善文档或提交代码。
-
-- **报告问题** — 在 [Issues](https://github.com/Tuning-Luna/github-avatar-generator/issues) 中说明复现步骤、期望结果与实际结果
-- **提交代码** — Fork 本仓库，从 `main` 切出分支，完成修改后发起 Pull Request
-- **提交前自检** — 先运行回归测试并在本地预览，参见[本地运行](./docs/run-locally.md)与[验证](./docs/verify.md)
-
-本项目是无构建、无运行时依赖的原生 ES module 应用，改完代码刷新页面即可生效，无需打包步骤。请保持静态资源、样式表与模块 URL 为相对路径，以兼容 GitHub Pages 的子路径部署。
+欢迎任何形式的贡献：报告问题、提出建议、完善文档或提交代码。详见[贡献指南](./docs/contributing.md)。
