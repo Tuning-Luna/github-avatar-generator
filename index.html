@@ -45,11 +45,10 @@
         <form class="control-section" id="generationForm">
           <div>
             <h2 class="section-title" id="seedTitle">输入种子</h2>
-            <p class="section-hint" id="nameHint">点击生成后，才会提交并更新预览。</p>
           </div>
           <div class="input-row">
             <input type="text" id="nameInput" placeholder="仓库名、用户名或任意文字" autocomplete="off" spellcheck="false"
-              aria-labelledby="seedTitle" aria-describedby="nameHint" />
+              aria-labelledby="seedTitle" />
             <button class="btn btn-generate" id="btnGenerate" type="submit">
               <span class="btn-label">生成头像</span>
             </button>
@@ -57,20 +56,18 @@
           <button class="btn btn-random" id="btnRandom" type="button">
             <span class="btn-label">随机生成</span>
           </button>
-          <div class="checkbox-row">
-            <label class="checkbox-label" for="varyBackground">
-              <input type="checkbox" id="varyBackground" aria-describedby="backgroundHint" />
-              <span>改变背景颜色</span>
-            </label>
-          </div>
-          <p class="section-hint" id="backgroundHint">取消勾选时使用纯白背景，前景会自动加深以保证对比度。</p>
         </form>
 
-        <section class="control-section" aria-labelledby="exportTitle">
-          <div>
-            <h2 class="section-title" id="exportTitle">导出图片</h2>
-          </div>
+        <!-- Both controls are settings on the rendered result, so they share one
+             row: 改变背景颜色 re-renders the pattern, 添加边框 only changes the
+             export. The section keeps an invisible label so it stays a named
+             region now that the visible heading is gone. -->
+        <section class="control-section" aria-label="设置与导出">
           <div class="checkbox-row">
+            <label class="checkbox-label" for="varyBackground">
+              <input type="checkbox" id="varyBackground" />
+              <span>改变背景颜色</span>
+            </label>
             <label class="checkbox-label" for="whiteBorder">
               <input type="checkbox" id="whiteBorder" checked />
               <span>添加边框</span>

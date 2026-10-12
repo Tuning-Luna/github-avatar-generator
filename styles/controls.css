@@ -133,11 +133,15 @@ input[type="text"]:read-only {
   box-shadow: 0 1px 2px rgb(0 0 0 / 30%);
 }
 
+/* Holds more than one setting, so labels need a wider column gap than the 8px
+   each label already puts between its own box and text — at that spacing two
+   adjacent settings read as one. */
 .checkbox-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
+  column-gap: var(--space-5);
+  row-gap: var(--space-2);
 }
 
 .checkbox-label {
