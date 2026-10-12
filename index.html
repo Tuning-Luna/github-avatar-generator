@@ -58,20 +58,16 @@
           </button>
         </form>
 
-        <!-- Both controls are settings on the rendered result, so they share one
-             row: 改变背景颜色 re-renders the pattern, 添加边框 only changes the
-             export. The section keeps an invisible label so it stays a named
-             region now that the visible heading is gone.
+        <!-- 添加边框 is a setting on the exported result rather than on the
+             render, so it sits with the border row it reveals. The section keeps
+             an invisible label so it stays a named region now that the visible
+             heading is gone.
 
-             They stay `type="checkbox"` so keyboard operation and the `.checked`
+             It stays `type="checkbox"` so keyboard operation and the `.checked`
              reads in ui/handlers.js are unchanged; `role="switch"` makes the
-             announced control match the switch they are drawn as. -->
+             announced control match the switch it is drawn as. -->
         <section class="control-section" aria-label="设置与导出">
           <div class="switch-row">
-            <label class="switch-label" for="varyBackground">
-              <input type="checkbox" id="varyBackground" role="switch" />
-              <span>改变背景颜色</span>
-            </label>
             <label class="switch-label" for="whiteBorder">
               <input type="checkbox" id="whiteBorder" role="switch" checked />
               <span>添加边框</span>

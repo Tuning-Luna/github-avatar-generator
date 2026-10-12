@@ -23,37 +23,4 @@ function hslToRgb(h, s, l) {
   ]
 }
 
-/**
- * sRGB channel (0-255) to its linear-light value.
- * @param {number} value
- * @returns {number}
- */
-function linearize(value) {
-  const channel = value / 255
-  return channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4)
-}
-
-/**
- * WCAG relative luminance of an sRGB triple, 0 (black) to 1 (white).
- * This is the quantity contrast actually depends on, so it is what decides
- * whether a pattern reads against its field — HSL lightness is not a substitute,
- * since a saturated yellow at 54% lightness is far brighter than a blue at 54%.
- * @param {number} r @param {number} g @param {number} b
- * @returns {number}
- */
-function relativeLuminance(r, g, b) {
-  return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b)
-}
-
-/**
- * WCAG contrast ratio between two relative luminances, 1 (identical) to 21.
- * @param {number} luminanceA @param {number} luminanceB
- * @returns {number}
- */
-function contrastRatio(luminanceA, luminanceB) {
-  const lighter = Math.max(luminanceA, luminanceB)
-  const darker = Math.min(luminanceA, luminanceB)
-  return (lighter + 0.05) / (darker + 0.05)
-}
-
-export { hslToRgb, relativeLuminance, contrastRatio }
+export { hslToRgb }

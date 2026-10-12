@@ -9,7 +9,6 @@ import {
   status,
   btnGenerate,
   btnRandom,
-  varyBackgroundCheckbox,
   btnDownload,
   btnCopyName,
   btnCopyImage,
@@ -116,9 +115,7 @@ async function renderFor(name) {
   setStatus("正在生成…")
 
   try {
-    const backgroundColor = await drawIdenticon(name || " ", stagingCanvas, {
-      varyBackground: varyBackgroundCheckbox.checked,
-    })
+    const backgroundColor = await drawIdenticon(name || " ", stagingCanvas)
     if (pendingRender !== renderId) return false
     commitRender(stagingCanvas, displayName, backgroundColor)
     return true
@@ -151,16 +148,6 @@ function random() {
   const name = randomName()
   nameInput.value = name
   return renderFor(name)
-}
-
-/**
- * Re-render the committed seed so a background change shows immediately. Like
- * the border controls, this acts on the rendered result rather than on the
- * editable draft, so an uncommitted edit in the input is left untouched.
- */
-async function refreshBackground() {
-  if (state.renderedName === null) return false
-  return renderFor(state.renderedName)
 }
 
 function currentExportCanvas() {
@@ -254,7 +241,6 @@ export {
   generate,
   random,
   randomName,
-  refreshBackground,
   download,
   copyName,
   copyImage,
