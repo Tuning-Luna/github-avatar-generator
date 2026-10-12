@@ -1,1 +1,7 @@
+# Supplied design reference; adapted into app-owned CSS, never a runtime dependency.
 /design-system
+
+# Tooling and editor artifacts.
+/.vite
+/node_modules
+.DS_Store
