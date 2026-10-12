@@ -47,6 +47,21 @@ test("export canvas uses the default border width from config", () => {
   delete globalThis.document
 })
 
+test("export canvas at the maximum border stays inside canvas area limits", () => {
+  const { created } = stubDocument()
+  const { edge } = borderGeometry(BORDER_MAX)
+
+  const result = getExportCanvas(sourceCanvas(), "hsl(0,0%,0%)", BORDER_MAX)
+  assert.equal(result.width, edge)
+  assert.equal(result.height, edge)
+  // The composed canvas is edge² px. Past roughly 4096² iOS Safari returns a
+  // null 2d context, which reaches the user as a failed export — so raising
+  // BORDER_MAX must not quietly cross that line.
+  assert.ok(edge * edge <= 4096 * 4096, `export canvas too large: ${edge}x${edge}`)
+  assert.equal(created.length, 1)
+  delete globalThis.document
+})
+
 test("border geometry maps a width onto export edge and preview ratio", () => {
   const defaultGeometry = borderGeometry(DEFAULT_BORDER_SIZE)
   assert.equal(defaultGeometry.edge, SIZE + DEFAULT_BORDER_SIZE * 2)
@@ -69,7 +84,7 @@ test("border geometry rejects widths outside the supported range", () => {
 test("preview padding ratio keeps the pattern at its exported share of the edge", () => {
   // The frame pads by paddingRatio of its width, so the pattern must occupy the
   // remaining share exactly as it does inside the exported PNG.
-  for (const width of [10, 80, 200]) {
+  for (const width of [10, DEFAULT_BORDER_SIZE, 200, BORDER_MAX]) {
     const { edge, paddingRatio } = borderGeometry(width)
     assert.ok(Math.abs((1 - paddingRatio * 2) - SIZE / edge) < 1e-12)
   }
