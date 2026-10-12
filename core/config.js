@@ -12,11 +12,11 @@ const HALF_GRID = Math.ceil(GRID / 2) // 3
 //
 // BORDER_MAX is capped by canvas limits rather than taste. The export canvas is
 // (SIZE + 2 × width)² px, so 500 yields a 2000 × 2000 canvas (16 MB, border at
-// 33% of each edge). iOS Safari caps canvas area near 4096² — widths past ~1500
+// 25% of each edge). iOS Safari caps canvas area near 4096² — widths past ~1500
 // risk a null 2d context there, which surfaces to the user as a failed export.
 const BORDER_MIN = 0
 const BORDER_MAX = 500
-const BORDER_STEP = 5
+const BORDER_STEP = 10
 const DEFAULT_BORDER_SIZE = 80
 
 // Pre-calculate column mapping for mirroring
