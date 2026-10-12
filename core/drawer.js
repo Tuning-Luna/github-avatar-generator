@@ -29,8 +29,30 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 
 /**
+ * Background hue offsets relative to the foreground. Choosing the relationship
+ * rather than an absolute hue keeps the pattern and its field reading as a
+ * deliberate pair instead of two unrelated colors.
+ */
+const BACKGROUND_HUE_OFFSETS = [0, 25, 180, 120, 330]
+
+/**
+ * Fill thresholds out of 256, one per density tier. A cell is inked when its
+ * hash byte falls below the threshold, so the tier sets how much of the grid is
+ * filled without touching the mirrored layout.
+ */
+const DENSITY_THRESHOLDS = [72, 128, 196]
+
+/**
  * Render an identicon for `text` onto `canvas`.
  * Canvas dimensions are fixed to GRID×CELL internally.
+ *
+ * SHA-256 byte map (32 bytes available):
+ *   0-1  hue (0..359)          4    background hue relationship
+ *   2    foreground saturation 5    background lightness within its band
+ *   3    foreground lightness  6    background saturation
+ *   7    density tier
+ *   8-22 one byte per independent grid cell (mirrored to 25 by MIRROR_MAP)
+ *
  * @param {string} text
  * @param {HTMLCanvasElement} canvas
  * @returns {Promise<string>} The background color used
@@ -50,21 +72,32 @@ async function drawIdenticon(text, canvas) {
   // ── Palette from hash ──
   // Simplified hue calculation: hash[0:2] % 360, handles negative correctly
   const hue = ((hash[0] << 8) | hash[1]) % 360
-  const sat = 70 + (hash[2] % 25)
-  const lig = 50 + (hash[3] % 15)
+  // Wide enough to admit pastels and deep tones, not just vivid mid-tones.
+  const sat = 40 + (hash[2] % 61)
+  const lig = 35 + (hash[3] % 38)
   const [r, g, b] = hslToRgb(hue, sat, lig)
   const fg = `rgb(${r},${g},${b})`
-  const bg = `hsl(${hue},${Math.max(sat - 30, 5)}%,${Math.min(lig + 42, 96)}%)`
 
   // ── Background ──
+  // The field is pushed to the opposite side of the foreground rather than
+  // always being a pale tint of the same hue: a light pattern gets a deep field
+  // and a dark pattern a pale one, so the two always separate (their lightness
+  // stays at least 32 points apart). The hash picks how far, and at which hue.
+  const bgHue = (hue + BACKGROUND_HUE_OFFSETS[hash[4] % BACKGROUND_HUE_OFFSETS.length]) % 360
+  const bgSat = 12 + (hash[6] % 44)
+  const bgLig = lig >= 55
+    ? 6 + (hash[5] % 18) // deep field, 6..23
+    : 86 + (hash[5] % 11) // pale field, 86..96
+  const bg = `hsl(${bgHue},${bgSat}%,${bgLig}%)`
+
   ctx.fillStyle = bg
   ctx.fillRect(0, 0, SIZE, SIZE)
 
-  // ── Pixel grid (mirrored, ~50% density via % 2) ──
+  // ── Pixel grid (mirrored; the hash's tier sets the density) ──
   ctx.fillStyle = fg
 
-  // Pre-calculate hash index base and use single loop for better cache locality
-  const hashOffset = 4
+  const density = DENSITY_THRESHOLDS[hash[7] % DENSITY_THRESHOLDS.length]
+  const hashOffset = 8
 
   for (let row = 0; row < GRID; row++) {
     const rowBase = hashOffset + row * HALF_GRID
@@ -72,8 +105,7 @@ async function drawIdenticon(text, canvas) {
 
     for (let col = 0; col < GRID; col++) {
       const mirrorCol = MIRROR_MAP[col]
-      // Check if cell should be filled (hash % 2 === 0)
-      if ((hash[rowBase + mirrorCol] & 1) === 0) {
+      if (hash[rowBase + mirrorCol] < density) {
         ctx.fillRect(col * CELL, y, CELL, CELL)
       }
     }

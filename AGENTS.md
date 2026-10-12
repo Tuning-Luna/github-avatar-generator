@@ -30,7 +30,7 @@ Stylesheets (all in styles/, linked in index.html in cascade order)
 - `core/` and `ui/` hold JavaScript only; every stylesheet lives in `styles/`. The sheets are flat and independent (no `@import`, no `url()`), so their order in `index.html` is the cascade order.
 - The source canvas is always 1000 x 1000px (5 x 5 grid x 200px cells); CSS scales it for display.
 - Grid uses horizontal mirroring: right half mirrors left half. `MIRROR_MAP` in `core/config.js` handles the column mapping.
-- Deterministic seed: renderer trims, lowercases, then SHA-256 hashes input. Hash bytes drive hue/sat/lig and grid cell fill (even = filled).
+- Deterministic seed: renderer trims, lowercases, then SHA-256 hashes input. Which bytes drive hue, foreground saturation/lightness, the background hue relationship, the density tier and the cells is documented in the byte map above `drawIdenticon` in `core/drawer.js`. Any change to that mapping changes every existing avatar, so the `octocat` test pins the current palette and cell positions as a regression baseline — update it deliberately, never just to make a failing test pass.
 - Background color is an HSL string returned by `drawIdenticon()`; use this return value for export borders. Do not re-read canvas pixels.
 - `ui/handlers.js` distinguishes the editable draft from the last successfully rendered seed. Copy and download use the committed result.
 - Export without a border is 1000 x 1000px; the border widens it by 2x the chosen width per edge, so the default 80px produces 1160 x 1160px and the 500px maximum produces 2000 x 2000px. `BORDER_MAX` is bounded by canvas area limits rather than aesthetics — the rationale is recorded in `core/config.js`.
