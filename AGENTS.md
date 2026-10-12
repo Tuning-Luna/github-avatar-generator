@@ -17,16 +17,17 @@ main.js (entry — semantic form and button bindings + init render)
       → utils/color.js  (hslToRgb)
       → utils/hash.js   (sha256 via crypto.subtle)
 
-CSS modules (linked in index.html)
-  core/tokens.css    — app-owned reference-derived color/type/spacing tokens
-  core/reset.css     — reset, accessible focus, reduced-motion base
-  ui/layout.css      — workspace panels, header and glass surface
-  ui/canvas.css      — preview frame, canvas and generated seed label
-  ui/controls.css    — form fields, buttons, checkbox and status
-  ui/responsive.css  — desktop sticky preview and mobile layout
+Stylesheets (all in styles/, linked in index.html in cascade order)
+  styles/tokens.css      — app-owned reference-derived color/type/spacing tokens
+  styles/reset.css       — reset, accessible focus, reduced-motion base
+  styles/layout.css      — workspace panels, header and glass surface
+  styles/canvas.css      — preview frame, canvas and generated seed label
+  styles/controls.css    — form fields, buttons, checkbox and status
+  styles/responsive.css  — desktop sticky preview and mobile layout
 ```
 
 ## Key conventions
+- `core/` and `ui/` hold JavaScript only; every stylesheet lives in `styles/`. The sheets are flat and independent (no `@import`, no `url()`), so their order in `index.html` is the cascade order.
 - The source canvas is always 1000 x 1000px (5 x 5 grid x 200px cells); CSS scales it for display.
 - Grid uses horizontal mirroring: right half mirrors left half. `MIRROR_MAP` in `core/config.js` handles the column mapping.
 - Deterministic seed: renderer trims, lowercases, then SHA-256 hashes input. Hash bytes drive hue/sat/lig and grid cell fill (even = filled).
