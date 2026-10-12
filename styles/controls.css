@@ -136,7 +136,7 @@ input[type="text"]:read-only {
 /* Holds more than one setting, so labels need a wider column gap than the 8px
    each label already puts between its own box and text — at that spacing two
    adjacent settings read as one. */
-.checkbox-row {
+.switch-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -144,7 +144,7 @@ input[type="text"]:read-only {
   row-gap: var(--space-2);
 }
 
-.checkbox-label {
+.switch-label {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
@@ -154,11 +154,52 @@ input[type="text"]:read-only {
   font-size: 14px;
 }
 
-.checkbox-label input {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--primary);
+/* Switch. The checkbox itself is the track, so keyboard operation, the
+   `.checked` reads in ui/handlers.js and the focus ring from reset.css all keep
+   working untouched; only its rendering changes. The thumb is the ::before. */
+.switch-label input {
+  position: relative;
+  flex: none;
+  width: 52px;
+  height: 32px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--surface-variant);
   cursor: pointer;
+  transition: background-color var(--transition);
+}
+
+.switch-label input::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  /* --text-muted rather than the MD3 off-thumb token (--outline), which sits at
+     3.89:1 on this track; this reads at 7.20:1 and keeps the thumb bright in
+     both states, as it is on iOS. */
+  background: var(--text-muted);
+  /* The thumb is the raised element, so it carries the shadow. */
+  box-shadow: 0 1px 3px rgb(0 0 0 / 45%);
+  transition: transform var(--transition), background-color var(--transition);
+}
+
+.switch-label input:checked {
+  background: var(--primary);
+}
+
+.switch-label input:checked::before {
+  /* 52 − 4 − 24 − 4 = 20 travels the thumb to the far edge, keeping the 4px
+     inset identical at both ends. */
+  transform: translateX(20px);
+  /* Not white as on iOS: --primary is a pale green, and a light thumb on it
+     would sit at about 1.9:1. --on-primary is the token for content placed on
+     --primary, so the thumb keeps its contrast in both states. */
+  background: var(--on-primary);
 }
 
 /* Border width. The row is hidden while 添加边框 is unchecked, so the control is
