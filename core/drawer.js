@@ -2,7 +2,8 @@
 
 import { sha256 } from "../utils/hash.js"
 import { hslToRgb } from "../utils/color.js"
-import { GRID, CELL, SIZE, HALF_GRID, MIRROR_MAP } from "./config.js"
+import { GRID, CELL, SIZE } from "./config.js"
+import { buildPattern } from "./pattern.js"
 
 /**
  * Draw a rounded-rectangle path using native API if available, fallback to manual.
@@ -60,20 +61,17 @@ async function drawIdenticon(text, canvas) {
   ctx.fillStyle = bg
   ctx.fillRect(0, 0, SIZE, SIZE)
 
-  // ── Pixel grid (mirrored, ~50% density via % 2) ──
+  // ── Pixel grid ──
+  // core/pattern.js decides the shape; the renderer only paints what it gets.
   ctx.fillStyle = fg
 
-  // Pre-calculate hash index base and use single loop for better cache locality
-  const hashOffset = 4
+  const pattern = buildPattern(hash)
 
   for (let row = 0; row < GRID; row++) {
-    const rowBase = hashOffset + row * HALF_GRID
     const y = row * CELL
 
     for (let col = 0; col < GRID; col++) {
-      const mirrorCol = MIRROR_MAP[col]
-      // Check if cell should be filled (hash % 2 === 0)
-      if ((hash[rowBase + mirrorCol] & 1) === 0) {
+      if (pattern[row * GRID + col]) {
         ctx.fillRect(col * CELL, y, CELL, CELL)
       }
     }

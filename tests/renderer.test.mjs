@@ -1,6 +1,8 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
+import { CELL, GRID } from "../core/config.js"
 import { drawIdenticon } from "../core/drawer.js"
+import { buildPattern } from "../core/pattern.js"
 import { sha256 } from "../utils/hash.js"
 import { hslToRgb } from "../utils/color.js"
 
@@ -30,7 +32,7 @@ test("HSL conversion preserves primary colors and grayscale", () => {
   assert.deepEqual(hslToRgb(0, 0, 50), [128, 128, 128])
 })
 
-test("octocat retains the pre-redesign palette and cell positions", async () => {
+test("a known seed keeps the palette it had before the pattern redesign", async () => {
   const result = await record("octocat")
   assert.equal(result.width, 1000)
   assert.equal(result.height, 1000)
@@ -38,13 +40,45 @@ test("octocat retains the pre-redesign palette and cell positions", async () => 
   assert.deepEqual(result.calls[0], {
     color: "hsl(117,44%,96%)", rect: [0, 0, 1000, 1000],
   })
-  assert.deepEqual(result.calls.slice(1).map(({ rect }) => rect.slice(0, 2)), [
-    [0, 0], [800, 0],
-    [0, 200], [200, 200], [400, 200], [600, 200], [800, 200],
-    [400, 400],
-    [0, 800], [200, 800], [600, 800], [800, 800],
-  ])
   assert.ok(result.calls.slice(1).every(({ color }) => color === "rgb(94,230,86)"))
+})
+
+test("a known seed pins the exact grid the template table produces", async () => {
+  // A deliberate snapshot, kept separate from the palette assertions above so
+  // an intentional pattern change does not force edits to the colour contract.
+  // It fails if the shape hash bytes or the template table shift, either of
+  // which would silently redraw every existing seed. "octocat" lands in the
+  // checker family (hash[4] = 240), hence the checkerboard.
+  const result = await record("octocat")
+  assert.deepEqual(result.calls.slice(1).map(({ rect }) => rect.slice(0, 2)), [
+    [0, 0], [400, 0], [800, 0],
+    [200, 200], [600, 200],
+    [0, 400], [400, 400], [800, 400],
+    [200, 600], [600, 600],
+    [0, 800], [400, 800], [800, 800],
+  ])
+})
+
+test("the renderer paints exactly the grid the pattern module returns", async () => {
+  // The snapshot above only covers one seed, so it would still pass if the
+  // renderer painted some other grid. These seeds are already trimmed and
+  // lowercased, so hashing them directly avoids restating the normalization
+  // rule the renderer owns.
+  for (const seed of ["octocat", "another seed", "头像🌱"]) {
+    const result = await record(seed)
+    const cells = buildPattern(await sha256(seed))
+    const painted = []
+    for (let row = 0; row < GRID; row++) {
+      for (let col = 0; col < GRID; col++) {
+        if (cells[row * GRID + col]) painted.push([col * CELL, row * CELL])
+      }
+    }
+    assert.deepEqual(
+      result.calls.slice(1).map(({ rect }) => rect.slice(0, 2)),
+      painted,
+      seed,
+    )
+  }
 })
 
 test("rendering is deterministic and normalizes case and outer whitespace", async () => {
