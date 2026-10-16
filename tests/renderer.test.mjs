@@ -43,10 +43,10 @@ test("a known seed keeps the palette it had before the pattern redesign", async 
   assert.ok(result.calls.slice(1).every(({ color }) => color === "rgb(94,230,86)"))
 })
 
-test("a known seed pins the exact grid the template table produces", async () => {
+test("a known seed pins the exact grid the mirrored family table produces", async () => {
   // A deliberate snapshot, kept separate from the palette assertions above so
   // an intentional pattern change does not force edits to the colour contract.
-  // It fails if the shape hash bytes or the template table shift, either of
+  // It fails if the shape hash bytes or the family tables shift, either of
   // which would silently redraw every existing seed. "octocat" lands in the
   // checker family (hash[4] = 240), hence the checkerboard.
   const result = await record("octocat")

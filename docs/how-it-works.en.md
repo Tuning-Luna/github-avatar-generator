@@ -5,7 +5,7 @@
 1. **Input** -> Trim the submitted string; the renderer lowercases it for hashing
 2. **Hash** -> Compute SHA-256
 3. **Color** -> Extract HSL from the hash and convert it to RGB
-4. **Pattern** -> Pick a template from the hash (noise, frame, cross, diagonal, center, checker), then fill each cell of the 5 x 5 grid against its own probability: with left-right symmetry on, the right half mirrors the left (15 free bits, 32768 patterns); with it off, both halves fill on their own (25 free bits)
+4. **Pattern** -> Pick a family from the current grid mode's table (mirrored: noise, frame, cross, diagonal, center, checker; unmirrored: scatter, stripe, corner, wedge, pillar, flag), then fill each cell of the 5 x 5 grid against its own probability. Each mode has its own table because the families are *defined* by mirroring — a frame is only a frame once its left half is reflected
 5. **Render** -> Draw on an HTML5 canvas at 1000 x 1000 resolution
 6. **Export** -> Download or copy a PNG with an optional matching-color border of any width from 0 to 500px per side (1000 x 1000px up to 2000 x 2000px)
 
