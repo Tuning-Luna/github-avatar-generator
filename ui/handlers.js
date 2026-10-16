@@ -162,18 +162,18 @@ async function download() {
 
 async function copyName() {
   if (!state.renderedName) {
-    setStatus("没有可复制的名字", "error")
+    setStatus("没有可复制的字符串", "error")
     return false
   }
 
   try {
     if (!navigator.clipboard?.writeText) throw new Error("Text clipboard is unavailable.")
     await navigator.clipboard.writeText(state.renderedName)
-    setStatus("已复制名字到剪贴板", "success")
+    setStatus("已复制字符串到剪贴板", "success")
     return true
   } catch (error) {
     console.error("String copy failed:", error)
-    setStatus("复制名字失败，请手动复制", "error")
+    setStatus("复制字符串失败，请手动复制", "error")
     return false
   }
 }
