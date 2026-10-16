@@ -24,4 +24,5 @@
 - 保持静态资源、样式表与模块 URL 为相对路径，以兼容 GitHub Pages 的子路径部署
 - `core/` 与 `ui/` 只放 JavaScript，所有样式表放在 `styles/`
 - 不引入运行时依赖或构建工具；新增逻辑请在 `tests/` 下补充回归测试
+- 每个用户设置写成 `ui/features/` 下的一个模块，并加入 `ui/features/index.js` 的清单。该模块之外不应有任何地方指名它——`ui/handlers.js`、`ui/elements.js` 以及其他特性都不例外——这样它才能被单独修改或删除。描述符的约定见 `ui/features/registry.js`，最小的例子是 `ui/features/symmetry.js`
 - 不要将随附的 `design-system/` 目录引入为应用依赖

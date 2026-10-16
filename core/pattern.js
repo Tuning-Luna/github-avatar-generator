@@ -6,7 +6,7 @@ import { GRID, HALF_GRID, MIRROR_MAP } from "./config.js"
 // Per-cell fill probabilities, and the whole tuning surface for how the output
 // looks. Retune these and re-measure rather than adding new mechanisms.
 //
-// A 5x5 mirrored grid has 15 free bits, so the app can never show more than
+// A mirrored 5x5 grid has 15 free bits, so mirroring can never show more than
 // 32768 distinct patterns. Within that ceiling, legibility and variety trade
 // off directly: a family reads clearly only when its skeleton is dense *and*
 // its background is quiet, and a quiet background leaves few distinct patterns
@@ -21,7 +21,7 @@ const NOISE_P = 0.5
 const DENSITY_SWING = 0.12
 
 // Clamp so no cell is ever certain. A cell pinned at 0 or 1 would be dropped
-// from the state space and shrink the 32768 ceiling above, so this guards the
+// from the state space and shrink the pattern ceiling above, so this guards the
 // tuning surface from a careless edit. None of today's constants reach the
 // bounds, which is why the clamp is deliberately slack.
 const PROBABILITY_FLOOR = 0.02
@@ -61,8 +61,18 @@ const TEMPLATES = Object.freeze([
 const TEMPLATE_BYTE = 4
 const DENSITY_BYTE = 5
 const CELL_BYTE_BASE = 6
-// Cells span bytes 6-20. Bytes 21-31 stay unused so a later axis can claim one
-// without shifting a byte that an already-rendered avatar depends on.
+
+// A mirrored grid spends one byte per authored cell (GRID x HALF_GRID = 15,
+// bytes 6-20) because each byte drives both columns it mirrors onto. An
+// unmirrored grid needs one byte per cell (GRID x GRID = 25, bytes 6-30), so the
+// two modes read different spans and byte 31 is all that is left over.
+//
+// Bytes 21-31 were reserved as free room so a later axis could claim one without
+// shifting a byte an already-rendered avatar depends on. Symmetry is the axis
+// that claimed them, and it took bytes 21-30 rather than one byte, because it
+// changes how 6-20 are read as well: the same byte addresses a different cell
+// depending on the mode. Any later axis therefore has byte 31, or a longer
+// digest, and cannot assume a reserved span.
 
 // ── Template selection ──
 // Cumulative byte thresholds over the weight total. The weights do not divide
@@ -112,27 +122,34 @@ function cellProbability(symbol, offset) {
 
 /**
  * Build the fill grid for a SHA-256 digest.
- * Returns a flat GRID x GRID array in row-major order, already mirrored, so
- * the renderer only has to walk it.
+ * Returns a flat GRID x GRID array in row-major order, so the renderer only has
+ * to walk it.
+ *
+ * Mirroring is a property of the cell index rather than a second pass: every
+ * cell — mirrored or not — reads its template column through MIRROR_MAP and its
+ * byte from its own cell slot, and only the byte stride and index change between
+ * the modes. Writing it once is what keeps the two modes from drifting apart,
+ * and a mirrored cell still reads the byte of the column it mirrors, so its
+ * partner cannot disagree with it.
  * @param {Uint8Array} hash
+ * @param {{symmetric?: boolean}} [options] `symmetric: false` fills both halves
+ *   independently, which spends 25 cell bytes instead of 15.
  * @returns {boolean[]}
  */
-function buildPattern(hash) {
+function buildPattern(hash, options = {}) {
+  const { symmetric = true } = options
   const template = selectTemplate(hash[TEMPLATE_BYTE])
   const offset = (hash[DENSITY_BYTE] / 255 - 0.5) * 2 * DENSITY_SWING
+  const stride = symmetric ? HALF_GRID : GRID
   const filled = new Array(GRID * GRID).fill(false)
 
   for (let row = 0; row < GRID; row++) {
-    for (let authored = 0; authored < HALF_GRID; authored++) {
+    for (let col = 0; col < GRID; col++) {
+      const authored = MIRROR_MAP[col]
+      const cell = symmetric ? authored : col
       const probability = cellProbability(template.rows[row][authored], offset)
-      const byte = hash[CELL_BYTE_BASE + row * HALF_GRID + authored]
-      if (byte / 255 >= probability) continue
-
-      // Write every column this one mirrors onto. Mirroring inside the loop
-      // keeps symmetry a property of the loop instead of a second pass that
-      // could drift from it.
-      for (let col = 0; col < GRID; col++) {
-        if (MIRROR_MAP[col] === authored) filled[row * GRID + col] = true
+      if (hash[CELL_BYTE_BASE + row * stride + cell] / 255 < probability) {
+        filled[row * GRID + col] = true
       }
     }
   }

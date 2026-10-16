@@ -5,11 +5,9 @@ import {
   btnCopyName,
   btnDownload,
   btnRandom,
-  borderWidthInput,
   canvas,
   generationForm,
   nameInput,
-  whiteBorderCheckbox,
 } from "./ui/elements.js"
 import {
   copyImage,
@@ -17,16 +15,11 @@ import {
   download,
   generate,
   random,
-  renderFor,
   randomName,
-  syncBorderControls,
+  renderFor,
+  rerender,
 } from "./ui/handlers.js"
-import {
-  BORDER_MAX,
-  BORDER_MIN,
-  BORDER_STEP,
-  DEFAULT_BORDER_SIZE,
-} from "./core/config.js"
+import { mountFeatures } from "./ui/features/host.js"
 
 function handleAsync(action) {
   return (event) => {
@@ -41,20 +34,14 @@ btnDownload.addEventListener("click", handleAsync(download))
 btnCopyName.addEventListener("click", handleAsync(copyName))
 btnCopyImage.addEventListener("click", handleAsync(copyImage))
 
-// config.js owns the border bounds; the markup only carries a static baseline so
-// the control stays usable before modules run.
-borderWidthInput.min = String(BORDER_MIN)
-borderWidthInput.max = String(BORDER_MAX)
-borderWidthInput.step = String(BORDER_STEP)
-borderWidthInput.value = String(DEFAULT_BORDER_SIZE)
-whiteBorderCheckbox.addEventListener("change", syncBorderControls)
-// `input` rather than `change`: the preview must follow the handle while dragging.
-borderWidthInput.addEventListener("input", syncBorderControls)
+// Settings mount before the first render: the render and export option sets are
+// collected from them, so a setting that is not bound yet would render with its
+// default instead of its control's value.
+mountFeatures({ rerender })
 
-syncBorderControls()
+// Keep a semantic canvas fallback for browsers that cannot render canvas pixels.
+canvas.textContent = "您的浏览器不支持 HTML5 Canvas。"
+
 const initialName = randomName()
 nameInput.value = initialName
 void renderFor(initialName)
-
-// Keep a semantic canvas fallback for browsers that cannot render canvas pixels.
-canvas.textContent = "你的头像预览将在这里显示。"

@@ -60,33 +60,38 @@
           </button>
         </form>
 
-        <!-- 添加边框 is a setting on the exported result rather than on the
-             render, so it sits with the border row it drives. The section keeps
-             an invisible label so it stays a named region now that the visible
-             heading is gone.
+        <!-- Each switch here is one setting, and each is wired by its own module
+             in ui/features/ — the switches sit together because they are all
+             settings rather than seed input.
 
-             It stays `type="checkbox"` so keyboard operation and the `.checked`
-             reads in ui/handlers.js are unchanged; `role="switch"` makes the
-             announced control match the switch it is drawn as. -->
+             They stay `type="checkbox"` so keyboard operation and the `.checked`
+             reads in the feature modules are unchanged; `role="switch"` makes the
+             announced control match the switch it is drawn as.
+
+             The `checked` and numeric attributes are static pre-JS baselines that
+             keep the controls usable before modules run; the feature modules are
+             the authoritative JS source and re-apply them on load. -->
         <section class="control-section" aria-label="设置与导出">
           <div class="switch-row">
             <label class="switch-label" for="whiteBorder">
               <input type="checkbox" id="whiteBorder" role="switch" checked />
               <span>添加边框</span>
             </label>
+            <label class="switch-label" for="symmetric">
+              <input type="checkbox" id="symmetric" role="switch" checked />
+              <span>左右对称</span>
+            </label>
           </div>
           <!-- Stays in place whether or not 添加边框 is checked: with the border off
                the slider is disabled rather than removed, so the row keeps its
-               position and the width can be read without toggling the switch. The
-               numeric attributes are a static pre-JS baseline; core/config.js is the
-               authoritative source and main.js re-applies them on load. -->
+               position and the width can be read without toggling the switch. -->
           <div class="border-row" id="borderRow">
             <div class="border-head">
               <label class="border-label" for="borderWidth">边框宽度</label>
               <output class="border-value" id="borderValue" for="borderWidth">80px</output>
             </div>
             <input type="range" class="border-range" id="borderWidth" min="0" max="500" step="10" value="80" />
-            <p class="section-hint" id="borderHint">尺寸 1160 × 1160px</p>
+            <p class="section-hint" id="borderHint">导出尺寸 1160 × 1160px</p>
           </div>
           <div class="action-row">
             <button class="btn btn-action btn-dl" id="btnDownload" type="button" disabled>

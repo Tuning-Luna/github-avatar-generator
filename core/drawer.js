@@ -6,7 +6,7 @@ import { GRID, CELL, SIZE } from "./config.js"
 import { buildPattern } from "./pattern.js"
 
 /**
- * Draw a rounded-rectangle path using native API if available, fallback to manual.
+ * Trace a rounded rectangle.
  * @param {CanvasRenderingContext2D} ctx
  * @param {number} x @param {number} y @param {number} w @param {number} h @param {number} r
  */
@@ -17,26 +17,23 @@ function roundRect(ctx, x, y, w, h, r) {
   } else {
     ctx.beginPath()
     ctx.moveTo(x + r, y)
-    ctx.lineTo(x + w - r, y)
-    ctx.arcTo(x + w, y, x + w, y + r, r)
-    ctx.lineTo(x + w, y + h - r)
-    ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
-    ctx.lineTo(x + r, y + h)
-    ctx.arcTo(x, y + h, x, y + h - r, r)
-    ctx.lineTo(x, y + r)
-    ctx.arcTo(x, y, x + r, y, r)
+    ctx.arcTo(x + w, y, x + w, y + h, r)
+    ctx.arcTo(x + w, y + h, x, y + h, r)
+    ctx.arcTo(x, y + h, x, y, r)
+    ctx.arcTo(x, y, x + w, y, r)
     ctx.closePath()
   }
 }
 
 /**
  * Render an identicon for `text` onto `canvas`.
- * Canvas dimensions are fixed to GRID×CELL internally.
+ * Canvas dimensions are fixed to GRID x CELL internally.
  * @param {string} text
  * @param {HTMLCanvasElement} canvas
+ * @param {{symmetric?: boolean}} [options] Passed through to the pattern builder.
  * @returns {Promise<string>} The background color used
  */
-async function drawIdenticon(text, canvas) {
+async function drawIdenticon(text, canvas, options = {}) {
   const normalizedText = text.trim().toLowerCase() || " "
   const hash = await sha256(normalizedText)
 
@@ -49,7 +46,6 @@ async function drawIdenticon(text, canvas) {
   const ctx = canvas.getContext("2d")
 
   // ── Palette from hash ──
-  // Simplified hue calculation: hash[0:2] % 360, handles negative correctly
   const hue = ((hash[0] << 8) | hash[1]) % 360
   const sat = 70 + (hash[2] % 25)
   const lig = 50 + (hash[3] % 15)
@@ -64,12 +60,10 @@ async function drawIdenticon(text, canvas) {
   // ── Pixel grid ──
   // core/pattern.js decides the shape; the renderer only paints what it gets.
   ctx.fillStyle = fg
-
-  const pattern = buildPattern(hash)
+  const pattern = buildPattern(hash, options)
 
   for (let row = 0; row < GRID; row++) {
     const y = row * CELL
-
     for (let col = 0; col < GRID; col++) {
       if (pattern[row * GRID + col]) {
         ctx.fillRect(col * CELL, y, CELL, CELL)

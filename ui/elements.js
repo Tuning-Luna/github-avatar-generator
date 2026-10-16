@@ -1,5 +1,8 @@
 // @ts-nocheck
 
+// Elements the app shell owns. A setting's own controls and readouts are
+// declared in its feature module instead (ui/features/), so deleting a setting
+// deletes its DOM references too.
 const canvas = document.getElementById("cv")
 const canvasFrame = document.getElementById("previewFrame")
 const generationForm = document.getElementById("generationForm")
@@ -9,11 +12,6 @@ const status = document.getElementById("status")
 const btnGenerate = document.getElementById("btnGenerate")
 const btnRandom = document.getElementById("btnRandom")
 const btnDownload = document.getElementById("btnDownload")
-const whiteBorderCheckbox = document.getElementById("whiteBorder")
-const borderRow = document.getElementById("borderRow")
-const borderWidthInput = document.getElementById("borderWidth")
-const borderWidthValue = document.getElementById("borderValue")
-const borderWidthHint = document.getElementById("borderHint")
 const btnCopyName = document.getElementById("btnCopyName")
 const btnCopyImage = document.getElementById("btnCopyImage")
 
@@ -27,11 +25,6 @@ export {
   btnGenerate,
   btnRandom,
   btnDownload,
-  whiteBorderCheckbox,
-  borderRow,
-  borderWidthInput,
-  borderWidthValue,
-  borderWidthHint,
   btnCopyName,
   btnCopyImage,
 }

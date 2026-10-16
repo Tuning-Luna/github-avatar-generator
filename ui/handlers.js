@@ -12,14 +12,10 @@ import {
   btnDownload,
   btnCopyName,
   btnCopyImage,
-  whiteBorderCheckbox,
-  borderRow,
-  borderWidthInput,
-  borderWidthValue,
-  borderWidthHint,
 } from "./elements.js"
 import { drawIdenticon } from "../core/drawer.js"
-import { borderGeometry, canvasToBlob, getExportCanvas } from "./export.js"
+import { canvasToBlob, getExportCanvas } from "./export.js"
+import { exportOptions, renderOptions, syncFeatures } from "./features/host.js"
 import { SAMPLE_NAMES } from "./sample-names.js"
 
 const state = {
@@ -27,6 +23,7 @@ const state = {
   backgroundColor: null,
   busy: false,
 }
+
 let pendingRender = null
 let focusRestore = null
 
@@ -35,49 +32,17 @@ function setStatus(message, type = "") {
   status.dataset.state = type
 }
 
-/** Border width in px for the next export, or 0 when the checkbox is off. */
-function selectedBorderWidth() {
-  return whiteBorderCheckbox.checked ? Number(borderWidthInput.value) : 0
-}
-
-/**
- * Reflect the border controls in the preview frame and the export readout.
- * The preview padding comes from the same geometry as the export canvas, so the
- * frame on screen matches the composed PNG without re-rendering the pattern.
- */
-function syncBorderControls() {
-  const width = Number(borderWidthInput.value)
-  const enabled = whiteBorderCheckbox.checked
-  // Geometry follows the width the export will really use, so with the border off
-  // the row that stays on screen reports the 1000px square it will produce.
-  const { edge, paddingRatio } = borderGeometry(selectedBorderWidth())
-
-  canvasFrame.classList.toggle("has-border", enabled)
-  canvasFrame.style.setProperty("--avatar-border-padding", `${(paddingRatio * 100).toFixed(3)}%`)
-
-  // Disabled rather than hidden: the row keeps its place in the panel, so the
-  // width can still be read — and set up — without switching the border on.
-  borderWidthInput.disabled = !enabled
-  borderRow.classList.toggle("is-disabled", !enabled)
-  borderWidthValue.textContent = `${width}px`
-  borderWidthInput.setAttribute("aria-valuetext", `${width}px，尺寸 ${edge} × ${edge}px`)
-  borderWidthHint.textContent = `尺寸 ${edge} × ${edge}px`
-
-  // Native ranges expose no filled-track styling, so the fill share is handed to CSS.
-  const min = Number(borderWidthInput.min)
-  const max = Number(borderWidthInput.max)
-  const progress = max > min ? (width - min) / (max - min) : 0
-  borderWidthInput.style.setProperty("--range-progress", `${progress * 100}%`)
-}
-
 function setLoading(on) {
   state.busy = on
   if (on && document.activeElement?.tagName === "BUTTON") {
     focusRestore = document.activeElement
   }
-
   btnGenerate.disabled = on
   btnRandom.disabled = on
+  // Settings decide for themselves which of their own controls a render in
+  // flight should lock: one that changes the shape locks its switch, one that
+  // only affects the export does not.
+  syncFeatures(on)
   const canExport = state.renderedName !== null && !on
   btnDownload.disabled = !canExport
   btnCopyImage.disabled = !canExport
@@ -85,7 +50,6 @@ function setLoading(on) {
   nameInput.readOnly = on
   generationForm.setAttribute("aria-busy", String(on))
   canvas.classList.toggle("loading", on)
-
   if (!on && focusRestore && document.activeElement?.tagName !== "INPUT") {
     focusRestore.focus()
     focusRestore = null
@@ -99,28 +63,30 @@ function commitRender(stagingCanvas, name, backgroundColor) {
   if (!context) throw new Error("Unable to display the generated avatar.")
   context.drawImage(stagingCanvas, 0, 0)
 
+  const label = name || "（空白）"
   state.renderedName = name
   state.backgroundColor = backgroundColor
-  nameLabel.textContent = name || "空白种子"
+
+  nameLabel.textContent = label
   nameLabel.classList.toggle("active", true)
   canvasFrame.style.setProperty("--avatar-bg", backgroundColor)
-  canvas.setAttribute("aria-label", `生成的头像：${name || "空白种子"}`)
-  setStatus("头像已生成", "success")
+  canvas.setAttribute("aria-label", `生成的像素头像：${label}`)
+  setStatus("生成完毕", "success")
 }
 
 /** Render into a detached canvas, then publish all related state together. */
 async function renderFor(name) {
   if (state.busy) return false
-
   const renderId = Symbol("render")
   pendingRender = renderId
   const displayName = name.trim()
   const stagingCanvas = document.createElement("canvas")
+
   setLoading(true)
   setStatus("正在生成…")
 
   try {
-    const backgroundColor = await drawIdenticon(name || " ", stagingCanvas)
+    const backgroundColor = await drawIdenticon(name || " ", stagingCanvas, renderOptions())
     if (pendingRender !== renderId) return false
     commitRender(stagingCanvas, displayName, backgroundColor)
     return true
@@ -136,6 +102,15 @@ async function renderFor(name) {
       setLoading(false)
     }
   }
+}
+
+/**
+ * Re-render the seed the panel last committed, for a setting that changes the
+ * shape. The committed seed stays the one the readouts and the export describe,
+ * so a setting change cannot silently commit a draft that was never submitted.
+ */
+function rerender() {
+  return renderFor(state.renderedName ?? nameInput.value)
 }
 
 function generate(event) {
@@ -157,7 +132,8 @@ function random() {
 
 function currentExportCanvas() {
   if (state.renderedName === null || !state.backgroundColor) return null
-  return getExportCanvas(canvas, state.backgroundColor, selectedBorderWidth())
+  const { borderWidth = 0 } = exportOptions()
+  return getExportCanvas(canvas, state.backgroundColor, borderWidth)
 }
 
 async function download() {
@@ -175,29 +151,29 @@ async function download() {
     link.href = url
     link.click()
     URL.revokeObjectURL(url)
-    setStatus("图片已下载", "success")
+    setStatus("已开始下载", "success")
     return true
   } catch (error) {
     console.error("PNG download failed:", error)
-    setStatus("下载失败，请重试", "error")
+    setStatus("导出图片失败，请重试", "error")
     return false
   }
 }
 
 async function copyName() {
   if (!state.renderedName) {
-    setStatus("暂无可复制的字符串", "error")
+    setStatus("没有可复制的名字", "error")
     return false
   }
 
   try {
     if (!navigator.clipboard?.writeText) throw new Error("Text clipboard is unavailable.")
     await navigator.clipboard.writeText(state.renderedName)
-    setStatus("字符串已复制", "success")
+    setStatus("已复制名字到剪贴板", "success")
     return true
   } catch (error) {
     console.error("String copy failed:", error)
-    setStatus("复制失败，请检查剪贴板权限", "error")
+    setStatus("复制名字失败，请手动复制", "error")
     return false
   }
 }
@@ -210,7 +186,7 @@ async function copyImage() {
   }
 
   if (!window.isSecureContext || !navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
-    setStatus("当前浏览器不支持复制图片，请改用下载", "error")
+    setStatus("当前环境不支持复制图片，请直接下载", "error")
     return false
   }
 
@@ -225,30 +201,30 @@ async function copyImage() {
   }
 
   if (!pngSupported) {
-    setStatus("当前浏览器不支持复制 PNG，请改用下载", "error")
+    setStatus("当前浏览器不支持复制 PNG 图片", "error")
     return false
   }
 
   try {
     const blobPromise = canvasToBlob(exportCanvas)
     await navigator.clipboard.write([new ClipboardItem({ "image/png": blobPromise })])
-    setStatus("图片已复制", "success")
+    setStatus("已复制图片到剪贴板", "success")
     return true
   } catch (error) {
     console.error("Image copy failed:", error)
-    setStatus("复制失败，请改用下载", "error")
+    setStatus("复制图片失败，请尝试下载", "error")
     return false
   }
 }
 
 export {
   renderFor,
+  rerender,
   generate,
   random,
   randomName,
   download,
   copyName,
   copyImage,
-  syncBorderControls,
   state,
 }

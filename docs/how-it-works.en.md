@@ -5,8 +5,8 @@
 1. **Input** -> Trim the submitted string; the renderer lowercases it for hashing
 2. **Hash** -> Compute SHA-256
 3. **Color** -> Extract HSL from the hash and convert it to RGB
-4. **Pattern** -> Pick a template from the hash (noise, frame, cross, diagonal, center, checker), then fill each cell of the 5 x 5 mirrored grid against its own probability
+4. **Pattern** -> Pick a template from the hash (noise, frame, cross, diagonal, center, checker), then fill each cell of the 5 x 5 grid against its own probability: with left-right symmetry on, the right half mirrors the left (15 free bits, 32768 patterns); with it off, both halves fill on their own (25 free bits)
 5. **Render** -> Draw on an HTML5 canvas at 1000 x 1000 resolution
 6. **Export** -> Download or copy a PNG with an optional matching-color border of any width from 0 to 500px per side (1000 x 1000px up to 2000 x 2000px)
 
-The rendering algorithm lives in `core/`. UI state and browser actions live in `ui/`; the app does not import or depend on the supplied `design-system/` directory.
+The rendering algorithm lives in `core/`. UI state and browser actions live in `ui/`; every user setting is its own module under `ui/features/`, and `ui/features/index.js` is the only list of them. The app does not import or depend on the supplied `design-system/` directory.

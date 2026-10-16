@@ -24,4 +24,5 @@ This is a build-free vanilla ES module app with no runtime dependencies, so a ch
 - Keep asset, stylesheet, and module URLs relative so the app keeps working below the GitHub Pages subpath
 - `core/` and `ui/` hold JavaScript only; every stylesheet lives in `styles/`
 - Do not add runtime dependencies or build tooling; add regression tests under `tests/` for new logic
+- Make a user setting a module under `ui/features/` and add it to the manifest in `ui/features/index.js`. Nothing outside that module should name it — neither `ui/handlers.js`, nor `ui/elements.js`, nor another feature — so it can be changed or removed on its own. `ui/features/registry.js` documents the descriptor, and `ui/features/symmetry.js` is the smallest example
 - Do not make the supplied `design-system/` directory a dependency of the app
