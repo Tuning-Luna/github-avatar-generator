@@ -4,7 +4,7 @@ import { CELL, GRID } from "../core/config.js"
 import { drawIdenticon } from "../core/drawer.js"
 import { buildPattern } from "../core/pattern.js"
 import { sha256 } from "../utils/hash.js"
-import { hslToRgb } from "../utils/color.js"
+import { hslToRgb, contrastRatio } from "../utils/color.js"
 
 async function record(seed, options) {
   const calls = []
@@ -32,6 +32,14 @@ test("HSL conversion preserves primary colors and grayscale", () => {
   assert.deepEqual(hslToRgb(0, 0, 50), [128, 128, 128])
 })
 
+test("contrast runs from 1 to 21 and does not depend on argument order", () => {
+  assert.equal(contrastRatio([0, 0, 0], [255, 255, 255]), 21)
+  assert.equal(contrastRatio([255, 255, 255], [0, 0, 0]), 21)
+  assert.equal(contrastRatio([0, 255, 0], [0, 255, 0]), 1)
+  // Mid grey against white, the standard example of the sRGB crossover.
+  assert.ok(Math.abs(contrastRatio([128, 128, 128], [255, 255, 255]) - 3.949) < 0.001)
+})
+
 test("a known seed keeps the palette it had before the pattern redesign", async () => {
   const result = await record("octocat")
   assert.equal(result.width, 1000)
@@ -43,26 +51,68 @@ test("a known seed keeps the palette it had before the pattern redesign", async 
   assert.ok(result.calls.slice(1).every(({ color }) => color === "rgb(94,230,86)"))
 })
 
-test("更改背景色 trades the light background for a dark shade of the same hue", async () => {
-  const light = await record("octocat")
-  const dark = await record("octocat", { invertBackground: true })
+test("更改背景色 darkens the background and leaves a mark that reads alone", async () => {
+  const off = await record("octocat")
+  const on = await record("octocat", { invertBackground: true })
 
-  // Same hue and saturation as the palette above, so the switch re-lights the
-  // colours rather than recolouring the seed: lightness 96% one way round, 20%
-  // the other. octocat's lig is 62, so the dark shade is the unclamped -42.
-  assert.equal(dark.background, "hsl(117,44%,20%)")
-  assert.deepEqual(dark.calls[0], {
+  // Same hue and saturation as the default palette, so the switch re-lights the
+  // seed rather than recolouring it: lightness 96% one way round, 20% the
+  // other. octocat's lig is 62, so the dark shade is the unclamped -42.
+  assert.equal(on.background, "hsl(117,44%,20%)")
+  assert.deepEqual(on.calls[0], {
     color: "hsl(117,44%,20%)", rect: [0, 0, 1000, 1000],
   })
-  // The mark is the light background, character for character — which is what
-  // makes "the cells take the light background" true by construction.
-  assert.ok(dark.calls.slice(1).every(({ color }) => color === light.background))
-  // The shape is untouched: every cell the light render paints, the dark one
-  // paints at the same place.
+  // Its mark already reads on that shade, so it comes through byte for byte:
+  // darkening the background must not recolour the mark.
+  assert.equal(on.calls[1].color, "rgb(94,230,86)")
+  assert.ok(on.calls.slice(1).every(({ color }) => color === off.calls[1].color))
+  // The shape is untouched: every cell the default render paints, this one
+  // paints in the same place.
   assert.deepEqual(
-    dark.calls.slice(1).map(({ rect }) => rect),
-    light.calls.slice(1).map(({ rect }) => rect),
+    on.calls.slice(1).map(({ rect }) => rect),
+    off.calls.slice(1).map(({ rect }) => rect),
   )
+})
+
+test("a mark that cannot read on the shade is lightened, not recoloured", async () => {
+  // navy is hue 224 — inside the band where a dark hue at lightness 50-64 is as
+  // dark as the shade behind it — so this is the case the lift exists for.
+  const off = await record("navy")
+  const on = await record("navy", { invertBackground: true })
+
+  assert.equal(on.background, "hsl(224,52%,14%)")
+  assert.equal(off.calls[1].color, "rgb(42,93,234)")
+  assert.equal(on.calls[1].color, "rgb(88,128,238)")
+  // Hue and saturation are held and only lightness moves, so the mark is the
+  // same colour turned up: hsl(224,82%,54%) lifted to 64%.
+  assert.equal(hslToRgb(224, 82, 54).join(","), "42,93,234")
+  assert.equal(hslToRgb(224, 82, 64).join(","), "88,128,238")
+})
+
+test("no seed in a sampled corpus puts its mark under 4.5:1 on the dark shade", async () => {
+  // The guarantee the lift makes, checked over real seeds rather than one pinned
+  // case. A sampled corpus cannot cover all 135,000 reachable palettes — SHA-256
+  // cannot be asked for a chosen hue, saturation and lightness — but every seed
+  // it does land on has to clear the bar.
+  const rgbOf = (css) => {
+    const rgb = /^rgb\((\d+),(\d+),(\d+)\)$/.exec(css)
+    if (rgb) return [+rgb[1], +rgb[2], +rgb[3]]
+    const hsl = /^hsl\((\d+),(\d+)%,(\d+)%\)$/.exec(css)
+    return hslToRgb(+hsl[1], +hsl[2], +hsl[3])
+  }
+
+  let lifted = 0
+  for (let i = 0; i < 1500; i++) {
+    const seed = `seed-${i}`
+    const on = await record(seed, { invertBackground: true })
+    const ratio = contrastRatio(rgbOf(on.background), rgbOf(on.calls[1].color))
+    assert.ok(ratio >= 4.5, `${seed}: ${on.background} against ${on.calls[1].color} is only ${ratio.toFixed(2)}:1`)
+    if (on.calls[1].color !== (await record(seed)).calls[1].color) lifted += 1
+  }
+  // Both branches have to be exercised or the sweep proves nothing about the
+  // lift — it would pass against a renderer that ignored the setting entirely.
+  assert.ok(lifted > 0, "the corpus must contain seeds whose mark has to be lifted")
+  assert.ok(lifted < 1500, "the corpus must contain seeds whose mark does not")
 })
 
 test("the inverted palette stays inert while the switch is off", async () => {

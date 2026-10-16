@@ -1,9 +1,36 @@
 // @ts-nocheck
 
 import { sha256 } from "../utils/hash.js"
-import { hslToRgb } from "../utils/color.js"
+import { hslToRgb, contrastRatio } from "../utils/color.js"
 import { GRID, CELL, SIZE } from "./config.js"
 import { buildPattern } from "./pattern.js"
+
+// The mark has to stay legible on 更改背景色's dark shade, and a dark hue at
+// lightness 50-64 is as dark as that shade is: left alone the two come as close
+// as 1.98:1 at hue 240, and 9% of the reachable palette lands under 3:1. The
+// background cannot fix it either — the darkest mark, rgb(25,25,230), measures
+// 2.32:1 against pure black, so no shade is dark enough for it. The mark
+// therefore moves, by lightness alone: hue and saturation are held, so a lifted
+// mark is the same colour turned up rather than a different one.
+const MIN_MARK_CONTRAST = 4.5
+
+/**
+ * `hue`/`sat`/`lig` as an RGB tuple, lightened only as far as it takes to reach
+ * MIN_MARK_CONTRAST against `background`.
+ *
+ * The colour comes back untouched when it already clears it, which is 56.5% of
+ * the reachable palette. Nothing in that palette needs a lightness above 73%,
+ * so the walk always finds an answer and the ceiling is a stop rather than a
+ * clamp.
+ * @returns {[number, number, number]}
+ */
+function legibleMark(hue, sat, lig, background) {
+  for (let lightness = lig; lightness <= 96; lightness++) {
+    const mark = hslToRgb(hue, sat, lightness)
+    if (contrastRatio(mark, background) >= MIN_MARK_CONTRAST) return mark
+  }
+  return hslToRgb(hue, sat, 96)
+}
 
 /**
  * Trace a rounded rectangle.
@@ -32,7 +59,8 @@ function roundRect(ctx, x, y, w, h, r) {
  * @param {HTMLCanvasElement} canvas
  * @param {{symmetric?: boolean, invertBackground?: boolean}} [options]
  *   `symmetric` is passed through to the pattern builder; `invertBackground` is
- *   read here, since it selects which of the two palettes is painted.
+ *   read here, since it picks the background and with it how far the mark has
+ *   to be lifted.
  * @returns {Promise<string>} The background color used
  */
 async function drawIdenticon(text, canvas, options = {}) {
@@ -52,32 +80,23 @@ async function drawIdenticon(text, canvas, options = {}) {
   // re-reads them rather than spending a byte, so the span reserved there is
   // untouched by this setting.
   //
-  // Off: a near-white tint behind the vivid mark. On: that tint becomes the
-  // mark and the background becomes the tint formula with +42/96 replaced by
-  // -42/14. It is not a swap of the two colours — a swap measures the same
-  // 1.07:1 worst case as the pair above, being that pair with the roles
-  // exchanged — so the dark shade is a third colour rather than a traded one.
+  // Off: a near-white tint behind the vivid mark. On: the background becomes a
+  // dark shade of the same hue — the tint's formula with +42/96 replaced by
+  // -42/14 — while the mark keeps its hue and saturation and is lightened only
+  // as far as MIN_MARK_CONTRAST needs. Measured over the whole reachable
+  // palette (360 hues x sat 70-94 x lig 50-64): off is 1.07:1 at its worst, at
+  // hue 60/sat 94/lig 50, and 59.9% of that space is under 3:1; on never goes
+  // below 4.5:1, and 56.5% of that space returns the mark byte-for-byte
+  // unchanged. Over the seeds this repo pins, octocat moves 1.51:1 to 6.37:1.
   //
-  // Measured over the whole reachable palette (360 hues x sat 70-94 x lig
-  // 50-64): off is 1.07:1 at its worst, at hue 60/sat 94/lig 50, and 59.9% of
-  // that space is under 3:1; on never goes below 6.72:1, at hue 60/sat 94/lig
-  // 64, where the two colours are 74 lightness points apart.
+  // Writing the shade as the tint's own formula rather than a fixed lightness
+  // keeps it one rule read two ways, and keeps the shade's depth following the
+  // seed instead of being the same dark for every seed of a hue.
   //
-  // The mark is the tint rather than the vivid colour, which measures 1.98:1 at
-  // hue 240 and puts 9% of the space under 3:1: a dark hue at lightness 50-64
-  // is as dark as the shade behind it. Reusing the tint also makes the on-mark
-  // string identical to the off-background string, which is what makes "the
-  // cells take the light background" checkable in one line.
-  //
-  // The 14 floor is a hue floor, not a contrast one. The worst case sits at
-  // lig 64, where it never binds, and where it does bind (lig 50-55) it lowers
-  // the ratio — 15.15:1 down to 10.72:1 at hue 60/sat 94/lig 50. It is there so
-  // the shade stays off hsl(60,64%,8%) = rgb(33,33,7), which reads as black
-  // rather than as a hue. The cost is that lig 50-55 collapse onto one shade
-  // lightness, leaving the shade 9 values across those 15 inputs. A fixed shade
-  // lightness would be simpler and cost more: lig would stop reaching the
-  // render at all with this on, so two seeds differing only in byte 3 would
-  // draw identical palettes.
+  // The 14 floor is a hue floor, not a contrast one: it keeps the shade off
+  // hsl(60,64%,8%) = rgb(33,33,7), which reads as black rather than as a hue.
+  // Its cost is that lig 50-55 collapse onto one shade lightness, leaving the
+  // shade 9 values across those 15 inputs.
   const hue = ((hash[0] << 8) | hash[1]) % 360
   const sat = 70 + (hash[2] % 25)
   const lig = 50 + (hash[3] % 15)
@@ -85,13 +104,12 @@ async function drawIdenticon(text, canvas, options = {}) {
   const tint = `hsl(${hue},${mutedSat}%,${Math.min(lig + 42, 96)}%)`
 
   const { invertBackground = false } = options
-  // Computed in both modes so the palette stays one straight-line block; the
-  // vivid mark is only painted when the background is not inverted.
-  const [r, g, b] = hslToRgb(hue, sat, lig)
-  const bg = invertBackground
-    ? `hsl(${hue},${mutedSat}%,${Math.max(lig - 42, 14)}%)`
-    : tint
-  const fg = invertBackground ? tint : `rgb(${r},${g},${b})`
+  const shadeLightness = Math.max(lig - 42, 14)
+  const bg = invertBackground ? `hsl(${hue},${mutedSat}%,${shadeLightness}%)` : tint
+  const mark = invertBackground
+    ? legibleMark(hue, sat, lig, hslToRgb(hue, mutedSat, shadeLightness))
+    : hslToRgb(hue, sat, lig)
+  const fg = `rgb(${mark.join(",")})`
 
   // ── Background ──
   ctx.fillStyle = bg
