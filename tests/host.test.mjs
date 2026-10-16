@@ -28,6 +28,7 @@ const MARKUP = {
   "#btnCopyImage": "button",
   "#whiteBorder": "checkbox",
   "#symmetric": "checkbox",
+  "#invertBackground": "checkbox",
   "#borderWidth": "range",
   "#borderRow": "div",
   "#borderValue": "output",
@@ -83,6 +84,7 @@ function installDom() {
 const elements = installDom()
 
 const { buildPattern } = await import("../core/pattern.js")
+const { drawIdenticon } = await import("../core/drawer.js")
 const { borderGeometry } = await import("../ui/export.js")
 const host = await import("../ui/features/host.js")
 
@@ -93,9 +95,22 @@ host.mountFeatures({ rerender: () => { renders += 1 } })
 
 const el = (selector) => elements.get(selector)
 
+/** The background the renderer paints for the options the host collects now. */
+async function renderBackground() {
+  const canvas = {
+    width: 0,
+    height: 0,
+    getContext: () => ({ fillStyle: "", fillRect() {} }),
+  }
+  return drawIdenticon("octocat", canvas, host.renderOptions())
+}
+
 test("mounting applies the defaults the feature modules declare", () => {
   assert.equal(el("#symmetric").checked, true)
   assert.equal(el("#whiteBorder").checked, true)
+  // Weak on its own — the stub starts every checkbox unchecked, so this cannot
+  // tell `default: false` from no default. The flip below is what covers it.
+  assert.equal(el("#invertBackground").checked, false)
   assert.equal(el("#borderWidth").value, "80")
 })
 
@@ -127,12 +142,12 @@ test("a mount with no rerender function is refused", async () => {
   assert.throws(() => fresh.mountFeatures(), /needs a rerender function/)
 })
 
-test("render options follow the symmetry switch, and only it", async (t) => {
-  assert.deepEqual(host.renderOptions(), { symmetric: true })
+test("render options follow the shape and background switches, and nothing else", async () => {
+  assert.deepEqual(host.renderOptions(), { symmetric: true, invertBackground: false })
 
   el("#symmetric").checked = false
   el("#symmetric").fire("change")
-  assert.deepEqual(host.renderOptions(), { symmetric: false })
+  assert.deepEqual(host.renderOptions(), { symmetric: false, invertBackground: false })
 
   // What the feature hands over has to be what the pattern builder accepts:
   // a renamed option would otherwise show up as a switch that does nothing.
@@ -143,6 +158,20 @@ test("render options follow the symmetry switch, and only it", async (t) => {
 
   el("#symmetric").checked = true
   el("#symmetric").fire("change")
+  assert.deepEqual(host.renderOptions(), { symmetric: true, invertBackground: false })
+
+  // The background key is the renderer's rather than the pattern builder's, so
+  // it is checked the same way but through the renderer: the two backgrounds
+  // differ only if the option the feature contributes is the one it reads.
+  const light = await renderBackground()
+  el("#invertBackground").checked = true
+  el("#invertBackground").fire("change")
+  assert.deepEqual(host.renderOptions(), { symmetric: true, invertBackground: true })
+  assert.notEqual(await renderBackground(), light, "the background switch must reach the renderer")
+
+  el("#invertBackground").checked = false
+  el("#invertBackground").fire("change")
+  assert.equal(await renderBackground(), light)
 })
 
 test("export options follow the border controls, and count the width the export will use", () => {
@@ -173,18 +202,23 @@ test("export options follow the border controls, and count the width the export 
   el("#borderWidth").fire("input")
 })
 
-test("only a setting that changes the shape asks for a re-render", () => {
+test("only a setting that changes the render asks for a re-render", () => {
   const before = renders
 
   el("#symmetric").checked = false
   el("#symmetric").fire("change")
   assert.equal(renders, before + 1, "the symmetry switch must re-render")
 
+  // This one recolours the render instead of reshaping it, and still re-renders.
+  el("#invertBackground").checked = true
+  el("#invertBackground").fire("change")
+  assert.equal(renders, before + 2, "the background switch must re-render")
+
   el("#whiteBorder").checked = false
   el("#whiteBorder").fire("change")
   el("#borderWidth").value = "500"
   el("#borderWidth").fire("input")
-  assert.equal(renders, before + 1, "the border must not re-render")
+  assert.equal(renders, before + 2, "the border must not re-render")
 
   el("#whiteBorder").checked = true
   el("#whiteBorder").fire("change")
@@ -192,16 +226,20 @@ test("only a setting that changes the shape asks for a re-render", () => {
   el("#borderWidth").fire("input")
   el("#symmetric").checked = true
   el("#symmetric").fire("change")
+  el("#invertBackground").checked = false
+  el("#invertBackground").fire("change")
 })
 
-test("a render in flight locks the settings that would change the shape, and nothing else", () => {
+test("a render in flight locks the settings that would change the render, and nothing else", () => {
   host.syncFeatures(true)
   assert.equal(el("#symmetric").disabled, true, "the shape switch must lock")
+  assert.equal(el("#invertBackground").disabled, true, "the palette switch must lock too")
   assert.equal(el("#whiteBorder").disabled, false, "an export setting stays usable")
   assert.equal(el("#borderWidth").disabled, false)
 
   host.syncFeatures(false)
   assert.equal(el("#symmetric").disabled, false)
+  assert.equal(el("#invertBackground").disabled, false)
 })
 
 test("a feature whose markup is missing fails at mount, naming the selector", async () => {
